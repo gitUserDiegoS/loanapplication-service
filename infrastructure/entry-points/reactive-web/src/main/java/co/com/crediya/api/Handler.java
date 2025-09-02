@@ -1,6 +1,8 @@
 package co.com.crediya.api;
 
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
+import co.com.crediya.api.mapper.LoanMapperDto;
+import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.usecase.loanapplication.IloanAppicationUserCase;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -17,13 +19,18 @@ public class Handler {
 
     private static final Logger log = LoggerFactory.getLogger(Handler.class);
 
-    private final IloanAppicationUserCase userUseCase;
+    private final IloanAppicationUserCase loanApplicationUseCase;
+
+    private final LoanMapperDto loanMapperDto;
 
 
     public Mono<ServerResponse> listenCreateLoanApplication(ServerRequest serverRequest) {
-        // useCase.logic();
+
         return serverRequest.bodyToMono(LoanApplicationRequestDto.class)
-                .doOnNext(loanApplication -> log.trace("Begin request to create user with email: {}", loanApplication.getIdDocument()))
+                .flatMap(dto -> {
+                    LoanApplication loan = loanMapperDto.toModel(dto);
+                    return loanApplicationUseCase.saveLoanApplication(loan, dto.getIdDocument());
+                })
                 .flatMap(saved -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(saved))

@@ -37,7 +37,12 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
 
     @Override
-    public Mono<LoanApplication> createLoanApplication(LoanApplication user) {
-        return Mono.just(new LoanApplication());
+    public Mono<LoanApplication> createLoanApplication(LoanApplication loanApplication) {
+        log.trace("Create user with email: {}", loanApplication.getEmail());
+        return super.save(loanApplication)
+                .as(operator::transactional)
+                .doOnNext(savedLoanApplication -> log.trace("User created successfully with id: {}", savedLoanApplication.getIdApplication()))
+                .doOnError(error -> log.error("Error in user Creation, failed with message: {}", error.getMessage()));
     }
+
 }

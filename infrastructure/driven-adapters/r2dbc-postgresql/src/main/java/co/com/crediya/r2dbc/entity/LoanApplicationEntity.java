@@ -18,7 +18,7 @@ public class LoanApplicationEntity {
 
     @Id
     @Column("id_solicitud")
-    private Long applicationId;
+    private Long idApplication;
 
     @Column("monto")
     private BigDecimal amount;
