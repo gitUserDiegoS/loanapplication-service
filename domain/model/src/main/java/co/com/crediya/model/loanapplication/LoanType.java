@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Builder(toBuilder = true)
 public class LoanType {
 
-    private Long IdloanType;
+    private Integer id;
 
     private String name;
 

@@ -17,7 +17,7 @@ public class LoanTypeEntity {
 
     @Id
     @Column("id_tipo_prestamo")
-    private Long IdloanType;
+    private Integer id;
 
     @Column("nombre")
     private String name;

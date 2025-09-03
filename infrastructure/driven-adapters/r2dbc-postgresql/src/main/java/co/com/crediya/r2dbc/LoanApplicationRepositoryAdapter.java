@@ -12,19 +12,19 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
+public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
         LoanApplication,
         LoanApplicationEntity,
         Long,
-        MyReactiveRepository
+        LoanApplicationReactiveRepository
         > implements LoanApplicationRepository {
 
-    private static final Logger log = LoggerFactory.getLogger(MyReactiveRepositoryAdapter.class);
+    private static final Logger log = LoggerFactory.getLogger(LoanApplicationRepositoryAdapter.class);
 
 
     private final TransactionalOperator operator;
 
-    public MyReactiveRepositoryAdapter(MyReactiveRepository repository, ObjectMapper mapper, TransactionalOperator operator) {
+    public LoanApplicationRepositoryAdapter(LoanApplicationReactiveRepository repository, ObjectMapper mapper, TransactionalOperator operator) {
         /**
          *  Could be use mapper.mapBuilder if your domain model implement builder pattern
          *  super(repository, mapper, d -> mapper.mapBuilder(d,ObjectModel.ObjectModelBuilder.class).build());
