@@ -22,8 +22,8 @@ public class LoanApplicationRequestDto {
     @Schema(description = "loan´s term", example = "12")
     private BigDecimal term;
 
-    @Schema(description = "User idDocument", example = "1")
-    private Integer idTypeLoan;
+    @Schema(description = "Id loan type", example = "1")
+    private Integer loanType;
 
 
 }

@@ -11,13 +11,18 @@ import java.math.BigDecimal;
 @Builder(toBuilder = true)
 public class LoanApplication {
 
-    private String idDocument;
 
+    private Long idApplication;
 
     private BigDecimal amount;
 
-    private BigDecimal term;
+    private Integer term;
 
-    private Integer idTypeLoan;
+    private String email;
+
+    private Integer status;
+
+    private Integer loanType;
+
 
 }

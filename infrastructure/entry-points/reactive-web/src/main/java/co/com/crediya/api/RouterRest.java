@@ -3,6 +3,7 @@ package co.com.crediya.api;
 import co.com.crediya.api.config.LoanApplicationPath;
 import co.com.crediya.api.dto.ApplicationResponseDto;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
+import co.com.crediya.api.exceptionhandler.GlobalExceptionHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +16,7 @@ import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -57,11 +58,11 @@ public class RouterRest {
                                     @ApiResponse(responseCode = "400", description = "Bad request due to validation result",
                                             content = @Content(
                                                     schema = @Schema(implementation =
-                                                            ExceptionHandler.class))),
+                                                            GlobalExceptionHandler.class))),
                                     @ApiResponse(responseCode = "500", description = "Internal error",
                                             content = @Content(
                                                     schema = @Schema(implementation =
-                                                            ExceptionHandler.class)))
+                                                            GlobalExceptionHandler.class)))
                             }
                     )
             )

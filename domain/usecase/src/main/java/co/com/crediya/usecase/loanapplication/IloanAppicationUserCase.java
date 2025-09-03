@@ -5,6 +5,6 @@ import reactor.core.publisher.Mono;
 
 public interface IloanAppicationUserCase {
 
-    Mono<LoanApplication> saveUser(LoanApplication user);
+    Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument);
 
 }
