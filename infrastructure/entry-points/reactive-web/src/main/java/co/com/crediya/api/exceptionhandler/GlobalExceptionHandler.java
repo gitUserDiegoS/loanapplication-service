@@ -2,7 +2,7 @@ package co.com.crediya.api.exceptionhandler;
 
 import co.com.crediya.api.dto.ErrorResponseDto;
 import co.com.crediya.model.loanapplication.exceptions.BusinessException;
-import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

@@ -27,10 +27,12 @@ public class Handler {
     public Mono<ServerResponse> listenCreateLoanApplication(ServerRequest serverRequest) {
 
         return serverRequest.bodyToMono(LoanApplicationRequestDto.class)
+                .doOnNext(loan -> log.trace("Begin request to create a loan application related with id document: {}", loan.getIdDocument()))
                 .flatMap(dto -> {
                     LoanApplication loan = loanMapperDto.toModel(dto);
                     return loanApplicationUseCase.saveLoanApplication(loan, dto.getIdDocument());
                 })
+                .map(loanMapperDto::toResponse)
                 .flatMap(saved -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(saved))

@@ -19,11 +19,11 @@ public class LoanApplicationUseCase implements IloanAppicationUserCase {
 
 
     @Override
-    public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String IdDocument) {
+    public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument) {
 
         return loanTypeRepository.findByLoanType(loanApplication.getLoanType())
                 .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(loanApplication.getLoanType().toString())))
-                .flatMap(validType -> userGatewayRepository.findUserByIdDocument(IdDocument)
+                .flatMap(validType -> userGatewayRepository.findUserByIdDocument(idDocument)
                         .map(user -> {
                             loanApplication.setEmail(user.getEmail());
                             loanApplication.setStatus(1);

@@ -1,5 +1,6 @@
 package co.com.crediya.api.mapper;
 
+import co.com.crediya.api.dto.ApplicationResponseDto;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import org.mapstruct.Mapper;
@@ -9,5 +10,6 @@ public interface LoanMapperDto {
 
     LoanApplication toModel(LoanApplicationRequestDto loanApplicationRequestDto);
 
+    ApplicationResponseDto toResponse(LoanApplication user);
 
 }
