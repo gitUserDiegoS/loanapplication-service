@@ -1,0 +1,3 @@
+routes:
+  paths:
+    loans: "/api/v1/solicitud"

@@ -4,6 +4,7 @@ import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.LoanType;
 import co.com.crediya.model.loanapplication.User;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
+import co.com.crediya.model.loanapplication.exceptions.UserNotFoundException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
@@ -36,17 +37,26 @@ public class LoanApplicationUserCaseTest {
     @InjectMocks
     private LoanApplicationUseCase loanApplicationUseCase;
 
+    private final User user = User.builder()
+            .idDocument("123456")
+            .email("test@email.com")
+            .build();
+
+    private final LoanApplication loanApplication = LoanApplication.builder()
+            .loanType(1)
+            .build();
+
+    private final LoanApplication loanApplicationInvalidType = LoanApplication.builder()
+            .loanType(15)
+            .build();
+
+    private final LoanType loanType = LoanType.builder()
+            .id(1)
+            .build();
+
     @Test
     void saveLoanApplication_success() {
-        LoanApplication loanApplication = new LoanApplication();
-        loanApplication.setLoanType(1);
 
-        User user = new User();
-        user.setIdDocument("123456");
-        user.setEmail("test@email.com");
-
-        LoanType loanType = new LoanType();
-        loanType.setId(1);
 
         when(loanTypeRepository.findByLoanType(any(Integer.class)))
                 .thenReturn(Mono.just(loanType));
@@ -76,16 +86,13 @@ public class LoanApplicationUserCaseTest {
     @Test
     void shouldFailWhenLoanTypeIsNotAllowed() {
 
-        LoanApplication loanApplication = new LoanApplication();
-        loanApplication.setLoanType(15);
 
         when(loanTypeRepository.findByLoanType(any(Integer.class)))
                 .thenReturn(Mono.empty());
 
 
-        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456");
+        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplicationInvalidType, "123456");
 
-        // Assert
         StepVerifier.create(result)
                 .expectErrorSatisfies(error -> {
                     assertThat(error).isInstanceOf(NotAllowedLoanTypeException.class);
@@ -95,6 +102,31 @@ public class LoanApplicationUserCaseTest {
         verify(loanTypeRepository).findByLoanType(15);
         verifyNoInteractions(userGatewayRepository);
         verifyNoInteractions(loanApplicationRepository);
+    }
+
+    @Test
+    void shouldFailWhenUserNotFound() {
+
+
+        when(loanTypeRepository.findByLoanType(any(Integer.class)))
+                .thenReturn(Mono.just(loanType));
+
+
+        when(userGatewayRepository.findUserByIdDocument(anyString()))
+                .thenReturn(Mono.error(new UserNotFoundException("123456")));
+
+        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456");
+
+
+        StepVerifier.create(result)
+                .expectErrorSatisfies(error -> {
+                    assertThat(error).isInstanceOf(UserNotFoundException.class);
+                })
+                .verify();
+
+        verify(loanTypeRepository).findByLoanType(1);
+        verifyNoInteractions(loanApplicationRepository);
+
     }
 
 

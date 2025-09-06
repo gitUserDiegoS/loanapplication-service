@@ -3,7 +3,7 @@ package co.com.crediya.api;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.mapper.LoanMapperDto;
 import co.com.crediya.model.loanapplication.LoanApplication;
-import co.com.crediya.usecase.loanapplication.IloanAppicationUserCase;
+import co.com.crediya.usecase.loanapplication.IloanAppicationUseCase;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public class Handler {
 
     private static final Logger log = LoggerFactory.getLogger(Handler.class);
 
-    private final IloanAppicationUserCase loanApplicationUseCase;
+    private final IloanAppicationUseCase loanApplicationUseCase;
 
     private final LoanMapperDto loanMapperDto;
 

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class LoanApplicationUseCase implements IloanAppicationUserCase {
+public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
     private final UserGatewayRepository userGatewayRepository;
 

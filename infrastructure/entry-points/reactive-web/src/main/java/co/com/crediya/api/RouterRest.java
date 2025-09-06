@@ -2,6 +2,7 @@ package co.com.crediya.api;
 
 import co.com.crediya.api.config.LoanApplicationPath;
 import co.com.crediya.api.dto.ApplicationResponseDto;
+import co.com.crediya.api.dto.ErrorResponseDto;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.exceptionhandler.GlobalExceptionHandler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,11 +59,11 @@ public class RouterRest {
                                     @ApiResponse(responseCode = "400", description = "Bad request due to validation result",
                                             content = @Content(
                                                     schema = @Schema(implementation =
-                                                            GlobalExceptionHandler.class))),
+                                                            ErrorResponseDto.class))),
                                     @ApiResponse(responseCode = "500", description = "Internal error",
                                             content = @Content(
                                                     schema = @Schema(implementation =
-                                                            GlobalExceptionHandler.class)))
+                                                            ErrorResponseDto.class)))
                             }
                     )
             )
