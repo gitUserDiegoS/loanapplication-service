@@ -1,10 +1,14 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.constants.ExceptionMessages;
+import co.com.crediya.model.loanapplication.exceptions.CreationNotAllowedException;
+import co.com.crediya.model.loanapplication.exceptions.UserNotFoundException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
+import co.com.crediya.model.usersession.UserSession;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -19,17 +23,26 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
 
     @Override
-    public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument) {
+    public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession) {
 
         return loanTypeRepository.findByLoanType(loanApplication.getLoanType())
                 .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(loanApplication.getLoanType().toString())))
-                .flatMap(validType -> userGatewayRepository.findUserByIdDocument(idDocument)
-                        .map(user -> {
+                .flatMap(validType -> userGatewayRepository.findUserByIdDocument(idDocument, token)
+                        .flatMap(user -> {
+
+                            if (!user.getEmail().equalsIgnoreCase(userSession.getEmail())) {
+                                return Mono.error(new CreationNotAllowedException(ExceptionMessages.NOT_ALLOWED_USER));
+                            }
+
                             loanApplication.setEmail(user.getEmail());
                             loanApplication.setStatus(1);
-                            return loanApplication;
-                        }))
-                .flatMap(loanApplicationRepository::createLoanApplication);
+
+                            return loanApplicationRepository.createLoanApplication(loanApplication);
+                        })
+
+                );
+
+
     }
 
 }

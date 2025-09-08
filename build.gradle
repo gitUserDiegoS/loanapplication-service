@@ -36,4 +36,37 @@ sonar {
     }
 }
 
+subprojects {
+    apply plugin: 'jacoco'
+
+    jacocoTestReport {
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        '**/constants/**',
+                        '**/constants/*',
+                        '**/roleenum/**',
+                        '**/roleenum/*'
+
+
+                ])
+            }))
+        }
+    }
+
+    jacocoTestCoverageVerification {
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        '**/constants/**',
+                        '**/constants/*',
+                        '**/roleenum/**',
+                        '**/roleenum/*'
+
+                ])
+            }))
+        }
+    }
+}
+
 apply from: './main.gradle'

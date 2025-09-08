@@ -14,8 +14,8 @@ spring:
   r2dbc:
     host: "localhost"
     port: "3306"
-    username: "root"
-    password: "raizDiego"
+    username: ${USER_DB}
+    password: ${PASS_DB}
     database: "loanapplication-db"
 management:
   endpoints:
@@ -63,3 +63,8 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION}

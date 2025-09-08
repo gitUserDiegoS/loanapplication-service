@@ -7,6 +7,7 @@ import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,15 +24,17 @@ public class RestConsumer implements UserGatewayRepository {
 
     @CircuitBreaker(name = "listenGetUserByDocumentId")
     @Override
-    public Mono<User> findUserByIdDocument(String idDocument) {
-        log.info("Search user by idDocument {}", idDocument);
+    public Mono<User> findUserByIdDocument(String idDocument, String token) {
+        log.info("Consuming Authentication service client, Search user by idDocument {}", idDocument);
         return client
                 .get()
                 .uri("/api/v1/usuarios/{idDocument}", idDocument)
+                .header(HttpHeaders.AUTHORIZATION, token)
                 .retrieve()
                 .onStatus(HttpStatus.NOT_FOUND::equals, response -> Mono.error(new UserNotFoundException(idDocument)))
                 .bodyToMono(UserFoundResponseDto.class)
-                .map(this::toDomain);
+                .map(this::toDomain)
+                .doOnError(err -> log.error("Error in client RestConsumer-->findUserByIdDocument {} ", err.getMessage(), err));
     }
 
     private User toDomain(UserFoundResponseDto dto) {
