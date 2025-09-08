@@ -21,11 +21,14 @@ import static org.springframework.security.oauth2.server.resource.BearerTokenErr
 @Component
 public class ValidateJwtToken implements TokenValidatorRepository {
 
+    public static final String EMAIL = "email";
+    public static final String ROLE = "role";
+    public static final String TYPE = "Bearer";
+
     private final SecretKey secret;
 
     public ValidateJwtToken(@Value("${JWT_SECRET}") String jwtSecret) {
 
-        log.info("secret " + jwtSecret);
         this.secret = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
     }
@@ -34,6 +37,8 @@ public class ValidateJwtToken implements TokenValidatorRepository {
     public Mono<UserSession> validateToken(String token) {
 
         try {
+            log.info("Init process to validate user token");
+
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(secret)
                     .build()
@@ -42,13 +47,13 @@ public class ValidateJwtToken implements TokenValidatorRepository {
 
             UserSession session = new UserSession(
                     Long.valueOf(claims.getSubject()),
-                    claims.get("email", String.class),
-                    claims.get("role", String.class)
+                    claims.get(EMAIL, String.class),
+                    claims.get(ROLE, String.class)
             );
 
-            log.info("como llega user get claims rol " + session.getName());
             return Mono.just(session);
         } catch (JwtException e) {
+            log.error("Not valid token received");
             return Mono.error(new NotValidTokenException(INVALID_TOKEN));
         }
     }
