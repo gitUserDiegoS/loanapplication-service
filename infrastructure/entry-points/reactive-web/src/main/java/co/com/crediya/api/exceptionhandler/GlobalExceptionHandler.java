@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -19,7 +20,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ErrorResponseDto>> handleBusinessException(
             BusinessException ex, ServerWebExchange exchange) {
 
-        HttpStatus status = mapToHttpStatus(ex.getErrorCode());
+        HttpStatus status = ErrorType.fromCode(ex.getErrorCode());
 
         ErrorResponseDto errorResponse = new ErrorResponseDto(
                 ex.getErrorCode(),
@@ -38,7 +39,7 @@ public class GlobalExceptionHandler {
             Exception ex, ServerWebExchange exchange) {
 
         ErrorResponseDto errorResponse = new ErrorResponseDto(
-                "INTERNAL_ERROR",
+                ErrorType.INTERNAL_SERVER_ERROR.name(),
                 ex.getMessage(),
                 exchange.getRequest().getPath().value()
         );
@@ -47,14 +48,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorResponse));
-    }
-
-    private HttpStatus mapToHttpStatus(String errorCode) {
-        return switch (errorCode) {
-            case "USER_NOT_FOUND" -> HttpStatus.NOT_FOUND;
-            case "CONFLICT" -> HttpStatus.CONFLICT;
-            default -> HttpStatus.BAD_REQUEST;
-        };
     }
 
 }

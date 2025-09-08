@@ -3,7 +3,7 @@ package co.com.crediya.usecase.loanapplication;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.constants.ExceptionMessages;
 import co.com.crediya.model.loanapplication.exceptions.CreationNotAllowedException;
-import co.com.crediya.model.loanapplication.exceptions.UserNotFoundException;
+
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
@@ -26,7 +26,7 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession) {
 
         return loanTypeRepository.findByLoanType(loanApplication.getLoanType())
-                .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(loanApplication.getLoanType().toString())))
+                .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(String.format(ExceptionMessages.NOT_ALLOWED_LOAN_TYPE, loanApplication.getLoanType()))))
                 .flatMap(validType -> userGatewayRepository.findUserByIdDocument(idDocument, token)
                         .flatMap(user -> {
 

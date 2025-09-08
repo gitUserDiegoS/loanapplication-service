@@ -1,5 +1,6 @@
 package co.com.crediya.validatorauth;
 
+import co.com.crediya.model.loanapplication.constants.ExceptionMessages;
 import co.com.crediya.model.tokenvalidator.gateways.TokenValidatorRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +24,10 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private final TokenValidatorRepository tokenProvider;
 
+    private static final String TYPE_TOKEN = "Bearer ";
+
+    private static final String TYPE_ROLE = "ROLE_";
+
     public JwtAuthenticationFilter(TokenValidatorRepository tokenProvider) {
         this.tokenProvider = tokenProvider;
     }
@@ -30,28 +35,25 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
-        String path = exchange.getRequest().getURI().getPath();
-
-        log.info("path Diego " + path);
+        log.info("Init validation for header Authorization");
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith(TYPE_TOKEN)) {
             String token = authHeader.substring(7);
-            log.info("path Diego token IN JWAT AUTHENTICATION in filter" + token);
 
             return tokenProvider.validateToken(token)
                     .flatMap(userSession -> {
                         Authentication authentication = new UsernamePasswordAuthenticationToken(
                                 userSession,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + userSession.getName()))
+                                List.of(new SimpleGrantedAuthority(TYPE_ROLE + userSession.getName()))
                         );
                         return chain.filter(exchange)
                                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
                     })
-                    .doOnNext(auth -> log.info("authorized rol " + auth))
-                    .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Token")));
+                    .doOnNext(auth -> log.info("Authorized rol"))
+                    .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, ExceptionMessages.INVALID_TOKEN)));
         }
 
         return chain.filter(exchange);

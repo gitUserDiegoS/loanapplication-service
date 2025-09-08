@@ -1,10 +1,10 @@
 package co.com.crediya.model.loanapplication.exceptions;
 
 import co.com.crediya.model.baseexception.BusinessException;
+import co.com.crediya.model.loanapplication.constants.ErrorCodes;
 
 public class UserNotFoundException extends BusinessException {
-    public UserNotFoundException(String idDocument) {
-
-        super(String.format("User not found by id: %s", idDocument), "USER_NOT_FOUND");
+    public UserNotFoundException(String message) {
+        super(message, ErrorCodes.NOT_FOUND);
     }
 }

@@ -2,6 +2,7 @@ package co.com.crediya.consumer;
 
 import co.com.crediya.consumer.dto.UserFoundResponseDto;
 import co.com.crediya.model.loanapplication.User;
+import co.com.crediya.model.loanapplication.constants.ExceptionMessages;
 import co.com.crediya.model.loanapplication.exceptions.UserNotFoundException;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -19,6 +20,9 @@ import java.nio.file.attribute.UserPrincipalNotFoundException;
 @Service
 @RequiredArgsConstructor
 public class RestConsumer implements UserGatewayRepository {
+
+    public static final String GET_USER_BY_ID = "/api/v1/usuarios/{idDocument}";
+
     private final WebClient client;
 
 
@@ -28,10 +32,10 @@ public class RestConsumer implements UserGatewayRepository {
         log.info("Consuming Authentication service client, Search user by idDocument {}", idDocument);
         return client
                 .get()
-                .uri("/api/v1/usuarios/{idDocument}", idDocument)
+                .uri(GET_USER_BY_ID, idDocument)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .retrieve()
-                .onStatus(HttpStatus.NOT_FOUND::equals, response -> Mono.error(new UserNotFoundException(idDocument)))
+                .onStatus(HttpStatus.NOT_FOUND::equals, response -> Mono.error(new UserNotFoundException(String.format(ExceptionMessages.USER_NOT_FOUND, idDocument))))
                 .bodyToMono(UserFoundResponseDto.class)
                 .map(this::toDomain)
                 .doOnError(err -> log.error("Error in client RestConsumer-->findUserByIdDocument {} ", err.getMessage(), err));

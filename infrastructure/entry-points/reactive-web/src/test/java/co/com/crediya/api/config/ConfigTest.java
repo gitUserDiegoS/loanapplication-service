@@ -6,6 +6,7 @@ import co.com.crediya.api.dto.ApplicationResponseDto;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.mapper.LoanMapperDto;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.usersession.UserSession;
 import co.com.crediya.usecase.loanapplication.IloanAppicationUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,7 @@ class ConfigTest {
     @BeforeEach
     void setup() {
         when(loanMapperDto.toModel(any(LoanApplicationRequestDto.class))).thenReturn(loan);
-        when(loanApplicationUseCase.saveLoanApplication(any(LoanApplication.class), anyString())).thenReturn(Mono.just(loan));
+        when(loanApplicationUseCase.saveLoanApplication(any(LoanApplication.class), anyString(), anyString(), any(UserSession.class))).thenReturn(Mono.just(loan));
         when(loanMapperDto.toResponse(any(LoanApplication.class))).thenReturn(responseDto);
     }
 
