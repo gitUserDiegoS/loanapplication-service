@@ -8,8 +8,6 @@ public enum ErrorType {
 
     NOT_FOUND(HttpStatus.NOT_FOUND),
     CONFLICT(HttpStatus.CONFLICT),
-    BAD_REQUEST(HttpStatus.BAD_REQUEST),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final HttpStatus httpStatus;
