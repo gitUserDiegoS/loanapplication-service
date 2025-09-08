@@ -4,7 +4,6 @@ import co.com.crediya.api.config.LoanApplicationPath;
 import co.com.crediya.api.dto.ApplicationResponseDto;
 import co.com.crediya.api.dto.ErrorResponseDto;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
-import co.com.crediya.api.exceptionhandler.GlobalExceptionHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

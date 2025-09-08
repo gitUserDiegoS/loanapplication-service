@@ -1,4 +1,4 @@
-package co.com.crediya.model.loanapplication.exceptions;
+package co.com.crediya.model.baseexception;
 
 public abstract class BusinessException extends RuntimeException {
 

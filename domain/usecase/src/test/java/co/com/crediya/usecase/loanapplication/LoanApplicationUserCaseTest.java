@@ -3,12 +3,15 @@ package co.com.crediya.usecase.loanapplication;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.LoanType;
 import co.com.crediya.model.loanapplication.User;
+import co.com.crediya.model.loanapplication.constants.ExceptionMessages;
+import co.com.crediya.model.loanapplication.exceptions.CreationNotAllowedException;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
 import co.com.crediya.model.loanapplication.exceptions.UserNotFoundException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 
+import co.com.crediya.model.usersession.UserSession;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +26,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanApplicationUserCaseTest {
+class LoanApplicationUserCaseTest {
 
     @Mock
     private UserGatewayRepository userGatewayRepository;
@@ -42,6 +45,11 @@ public class LoanApplicationUserCaseTest {
             .email("test@email.com")
             .build();
 
+    private final User userFromNotSession = User.builder()
+            .idDocument("12345678")
+            .email("test2@email.com")
+            .build();
+
     private final LoanApplication loanApplication = LoanApplication.builder()
             .loanType(1)
             .build();
@@ -54,6 +62,11 @@ public class LoanApplicationUserCaseTest {
             .id(1)
             .build();
 
+    private final UserSession userSession = UserSession.builder()
+            .email("test@email.com")
+            .name("role")
+            .build();
+
     @Test
     void saveLoanApplication_success() {
 
@@ -62,13 +75,13 @@ public class LoanApplicationUserCaseTest {
                 .thenReturn(Mono.just(loanType));
 
 
-        when(userGatewayRepository.findUserByIdDocument(anyString()))
+        when(userGatewayRepository.findUserByIdDocument(anyString(), anyString()))
                 .thenReturn(Mono.just(user));
 
         when(loanApplicationRepository.createLoanApplication(any(LoanApplication.class)))
                 .thenAnswer(invocation -> Mono.just(loanApplication));
 
-        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456");
+        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456", "tokenJwt", userSession);
 
         StepVerifier.create(result)
                 .expectNextMatches(app ->
@@ -77,7 +90,7 @@ public class LoanApplicationUserCaseTest {
                 .verifyComplete();
 
         verify(loanTypeRepository).findByLoanType(1);
-        verify(userGatewayRepository).findUserByIdDocument("123456");
+        verify(userGatewayRepository).findUserByIdDocument("123456", "tokenJwt");
         verify(loanApplicationRepository).createLoanApplication(any(LoanApplication.class));
 
     }
@@ -91,7 +104,7 @@ public class LoanApplicationUserCaseTest {
                 .thenReturn(Mono.empty());
 
 
-        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplicationInvalidType, "123456");
+        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplicationInvalidType, "123456", "tokenJwt", userSession);
 
         StepVerifier.create(result)
                 .expectErrorSatisfies(error -> {
@@ -112,10 +125,10 @@ public class LoanApplicationUserCaseTest {
                 .thenReturn(Mono.just(loanType));
 
 
-        when(userGatewayRepository.findUserByIdDocument(anyString()))
-                .thenReturn(Mono.error(new UserNotFoundException("123456")));
+        when(userGatewayRepository.findUserByIdDocument(anyString(), anyString()))
+                .thenReturn(Mono.error(new UserNotFoundException(String.format(ExceptionMessages.USER_NOT_FOUND, "123456"))));
 
-        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456");
+        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456", "tokenJwt", userSession);
 
 
         StepVerifier.create(result)
@@ -129,5 +142,29 @@ public class LoanApplicationUserCaseTest {
 
     }
 
+    @Test
+    void shouldFailWhenCreateLoanApplicationForAnotherUsers() {
+
+
+        when(loanTypeRepository.findByLoanType(any(Integer.class)))
+                .thenReturn(Mono.just(loanType));
+
+
+        when(userGatewayRepository.findUserByIdDocument(anyString(), anyString()))
+                .thenReturn(Mono.just(userFromNotSession));
+
+        Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "12345678", "tokenJwt", userSession);
+
+        StepVerifier.create(result)
+                .expectErrorSatisfies(error -> {
+                    assertThat(error).isInstanceOf(CreationNotAllowedException.class);
+                    assertThat(ExceptionMessages.NOT_ALLOWED_USER).isEqualTo("Cannot create a loan application for another user");
+                })
+                .verify();
+
+        verify(loanTypeRepository).findByLoanType(1);
+        verifyNoInteractions(loanApplicationRepository);
+
+    }
 
 }
