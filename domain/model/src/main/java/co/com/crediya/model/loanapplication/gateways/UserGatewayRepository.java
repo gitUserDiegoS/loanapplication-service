@@ -6,4 +6,7 @@ import reactor.core.publisher.Mono;
 public interface UserGatewayRepository {
 
     Mono<User> findUserByIdDocument(String idDocument, String token);
+
+    Mono<User> findUserByEmail(String email, String token);
+
 }

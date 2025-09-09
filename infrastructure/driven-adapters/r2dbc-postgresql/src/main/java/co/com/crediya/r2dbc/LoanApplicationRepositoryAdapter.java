@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -42,6 +43,11 @@ public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
                 .as(operator::transactional)
                 .doOnNext(savedLoanApplication -> log.trace("Loan application created successfully with id: {}", savedLoanApplication.getIdApplication()))
                 .doOnError(error -> log.error("Error loan application creation, failed with message: {}", error.getMessage()));
+    }
+
+    @Override
+    public Flux<LoanApplication> findByStatus(int status, int page, int size, String sort) {
+        return null;
     }
 
 }

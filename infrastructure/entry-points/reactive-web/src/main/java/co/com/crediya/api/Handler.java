@@ -49,6 +49,19 @@ public class Handler {
                 .doOnError(err -> log.error("Error in handler listenCreateLoanApplication {} ", err.getMessage(), err));
     }
 
+    public Mono<ServerResponse> listenGetLoanApplications(ServerRequest serverRequest) {
+
+        return userUseCase.findByIdDocument(idDocument)
+                .doOnNext(user -> log.trace("Begin request to get user by email: {}", user.getEmail()))
+                .map(userMapperDto::toFoundResponse)
+                .flatMap(user -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(user))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnError(err -> log.error("Error in handler-->listenGetUserByEmail{}", err.getMessage(), err));
+
+    }
+
     private static Mono<UserSession> getSessionContext() {
         return ReactiveSecurityContextHolder.getContext()
                 .doOnNext(user -> log.trace("Init process, getting context"))
