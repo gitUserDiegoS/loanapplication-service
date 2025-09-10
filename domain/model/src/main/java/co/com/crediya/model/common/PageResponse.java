@@ -1,11 +1,11 @@
-package co.com.crediya.api.dto;
+package co.com.crediya.model.common;
 
 import java.util.List;
 
 public record PageResponse<T>(List<T> content,
                               int page,
                               int size,
-                              long totalElements,
-                              int totalPages) {
+                              long totalElements
+) {
 
 }

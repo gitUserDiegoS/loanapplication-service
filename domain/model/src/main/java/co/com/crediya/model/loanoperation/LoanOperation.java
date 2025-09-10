@@ -1,9 +1,20 @@
-package co.com.crediya.model.loanapplication;
+package co.com.crediya.model.loanoperation;
+
+import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
+@Getter
+@Setter
+@NoArgsConstructor
+//@AllArgsConstructor
+@Builder(toBuilder = true)
 public class LoanOperation {
 
     public static BigDecimal calculateMonthlyFee(BigDecimal amount, int term, BigDecimal interestRate) {

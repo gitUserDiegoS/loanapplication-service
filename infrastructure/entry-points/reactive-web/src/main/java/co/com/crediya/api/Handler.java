@@ -2,6 +2,7 @@ package co.com.crediya.api;
 
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.mapper.LoanMapperDto;
+import co.com.crediya.model.common.PageRequest;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.usersession.UserSession;
 import co.com.crediya.usecase.loanapplication.IloanAppicationUseCase;
@@ -51,14 +52,25 @@ public class Handler {
 
     public Mono<ServerResponse> listenGetLoanApplications(ServerRequest serverRequest) {
 
-        return userUseCase.findByIdDocument(idDocument)
-                .doOnNext(user -> log.trace("Begin request to get user by email: {}", user.getEmail()))
-                .map(userMapperDto::toFoundResponse)
+        String token = serverRequest.headers().firstHeader(HttpHeaders.AUTHORIZATION);
+
+
+        int status = Integer.parseInt(serverRequest.queryParam("status").orElse("1"));
+        int page = Integer.parseInt(serverRequest.queryParam("page").orElse("0"));
+        int size = Integer.parseInt(serverRequest.queryParam("size").orElse("10"));
+        //String sort = serverRequest.queryParam("sort").orElse("fechaCreacion,DESC");
+
+        PageRequest pageRequest = new PageRequest(page, size);
+
+        return loanApplicationUseCase.getLoanApplications(status, pageRequest,token)
+//                .doOnNext(user -> log.trace("Begin request to get user by email: {}", user.getEmail()))
+  //              .map(userMapperDto::toFoundResponse)
                 .flatMap(user -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(user))
                 .switchIfEmpty(ServerResponse.notFound().build())
                 .doOnError(err -> log.error("Error in handler-->listenGetUserByEmail{}", err.getMessage(), err));
+
 
     }
 

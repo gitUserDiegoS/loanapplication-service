@@ -1,6 +1,9 @@
 package co.com.crediya.usecase.loanapplication;
 
+import co.com.crediya.model.common.PageRequest;
+import co.com.crediya.model.common.PageResponse;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.usersession.UserSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -9,7 +12,7 @@ public interface IloanAppicationUseCase {
 
     Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession);
 
-    Flux<LoanApplication> getLoanApplications(int status, int page, int size, String sort, String token);
+    Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, PageRequest pageRequest, String token);
 
 
 }
