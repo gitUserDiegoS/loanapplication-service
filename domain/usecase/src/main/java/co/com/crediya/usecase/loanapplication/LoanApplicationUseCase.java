@@ -15,7 +15,7 @@ import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeExcepti
 import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Flux;
+
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -69,9 +69,6 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                     List<PendingLoanApplication> loans = tuple.getT1();
                     Long total = tuple.getT2();
 
-
-                    System.out.println("lista-->"+loans);
-
                     List<String> emails = loans.stream()
                             .map(PendingLoanApplication::getEmail)
                             .toList();
@@ -91,32 +88,12 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                                 );
                             });
                 });
-/*
-        return loanApplicationRepository.findByStatus(status, pageRequest)
-                .flatMap(pendings -> {
-                    List<String> emails = pendings.content().stream()
-                            .map(PendingLoanApplication::getEmail)
-                            .toList();
 
-                    return userGatewayRepository.getUsersByEmailBatch(emails, token)
-                            .collectMap(User::getEmail)
-                            .map(usersMap -> {
-                                List<PendingLoanApplication> enriched = pendings.content().stream()
-                                        .map(sol -> enrich(sol, usersMap.get(sol.getEmail()))).toList();
-
-                                return new PageResponse<>(
-                                        enriched,
-                                        pendings.page(),
-                                        pendings.size(),
-                                        pendings.total()
-                                );
-                            });
-                });
-
- */
     }
 
     private PendingLoanApplication enrich(PendingLoanApplication sol, User user) {
+
+
         if (user == null) return sol;
         sol.setName(user.getName());
         sol.setBaseSalary(user.getSalaryBase());

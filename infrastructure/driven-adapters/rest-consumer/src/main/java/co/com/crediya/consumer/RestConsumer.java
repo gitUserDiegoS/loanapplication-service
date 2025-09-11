@@ -65,6 +65,9 @@ public class RestConsumer implements UserGatewayRepository {
         return User.builder()
                 .idDocument(dto.getIdDocument())
                 .email(dto.getEmail())
+                .name(dto.getName() + " " + dto.getLastname())
+                .lastname(dto.getName())
+                .salaryBase(dto.getSalaryBase())
                 .build();
     }
 

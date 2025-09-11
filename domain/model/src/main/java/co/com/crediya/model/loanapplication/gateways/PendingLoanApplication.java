@@ -1,7 +1,6 @@
 package co.com.crediya.model.loanapplication.gateways;
 
-import co.com.crediya.model.loanapplication.User;
-import co.com.crediya.model.loanoperation.LoanOperation;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +17,7 @@ public class PendingLoanApplication {
 
 
     private BigDecimal amount;
-    private int term;
+    private Integer term;
     private String email;
 
     private String name;//revisar

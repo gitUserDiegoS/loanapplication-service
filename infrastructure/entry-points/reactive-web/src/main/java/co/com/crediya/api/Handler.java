@@ -58,13 +58,12 @@ public class Handler {
         int status = Integer.parseInt(serverRequest.queryParam("status").orElse("1"));
         int page = Integer.parseInt(serverRequest.queryParam("page").orElse("0"));
         int size = Integer.parseInt(serverRequest.queryParam("size").orElse("10"));
-        //String sort = serverRequest.queryParam("sort").orElse("fechaCreacion,DESC");
+
 
         PageRequest pageRequest = new PageRequest(page, size);
 
         return loanApplicationUseCase.getLoanApplications(status, pageRequest,token)
-//                .doOnNext(user -> log.trace("Begin request to get user by email: {}", user.getEmail()))
-  //              .map(userMapperDto::toFoundResponse)
+
                 .flatMap(user -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(user))

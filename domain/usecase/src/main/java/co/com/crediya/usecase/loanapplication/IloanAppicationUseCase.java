@@ -5,7 +5,7 @@ import co.com.crediya.model.common.PageResponse;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.usersession.UserSession;
-import reactor.core.publisher.Flux;
+
 import reactor.core.publisher.Mono;
 
 public interface IloanAppicationUseCase {
