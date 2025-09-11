@@ -1,6 +1,5 @@
 package co.com.crediya.r2dbc;
 
-import co.com.crediya.model.common.PageRequest;
 
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
@@ -54,17 +53,17 @@ public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
 
 
     @Override
-    public Flux<PendingLoanApplication> findByStatus(int status, PageRequest pageable) {
+    public Flux<PendingLoanApplication> findByStatus(int status, String email, int size, int offset) {
 
-        int offset = pageable.offset();
-        return pendingLoanRepo.findLoansByStatus(status, pageable.size(), offset)
+
+        return pendingLoanRepo.findLoansByStatus(status, email, size, offset)
                 .map(proj -> PendingLoanApplication.builder()
-                        .amount(proj.monto())
-                        .term(proj.plazo())
+                        .amount(proj.amount())
+                        .term(proj.term())
                         .email(proj.email())
-                        .loanType(proj.nombre())
-                        .interestRate(proj.interes())
-                        .status(proj.estado())
+                        .loanType(proj.name())
+                        .interestRate(proj.rate())
+                        .status(proj.status())
                         .build());
 
 

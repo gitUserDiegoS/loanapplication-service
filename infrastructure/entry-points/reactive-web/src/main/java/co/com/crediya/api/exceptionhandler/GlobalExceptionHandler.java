@@ -3,9 +3,12 @@ package co.com.crediya.api.exceptionhandler;
 import co.com.crediya.api.dto.ErrorResponseDto;
 import co.com.crediya.model.baseexception.BusinessException;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ServerWebExchange;
@@ -33,6 +36,24 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorResponse));
     }
+
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public Mono<org.springframework.http.ResponseEntity<ErrorResponseDto>> handleExceptionAcceddDenied(
+            AccessDeniedException ex, ServerWebExchange exchange) {
+
+        ErrorResponseDto errorResponse = new ErrorResponseDto(
+                ErrorType.FORBIDDEN.name(),
+                ex.getMessage(),
+                exchange.getRequest().getPath().value()
+        );
+
+        return Mono.just(org.springframework.http.ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorResponse));
+    }
+
 
     @ExceptionHandler(Exception.class)
     public Mono<org.springframework.http.ResponseEntity<ErrorResponseDto>> handleGenericException(

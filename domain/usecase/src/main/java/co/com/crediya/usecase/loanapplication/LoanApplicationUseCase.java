@@ -1,6 +1,6 @@
 package co.com.crediya.usecase.loanapplication;
 
-import co.com.crediya.model.common.PageRequest;
+
 import co.com.crediya.model.common.PageResponse;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.User;
@@ -55,10 +55,10 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
 
     @Override
-    public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, PageRequest pageRequest, String token) {
+    public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token) {
 
         Mono<List<PendingLoanApplication>> loansMono =
-                loanApplicationRepository.findByStatus(status, pageRequest)
+                loanApplicationRepository.findByStatus(status, email, size, offset)
                         .collectList();
 
 
@@ -82,8 +82,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
                                 return new PageResponse<>(
                                         enriched,
-                                        pageRequest.page(),
-                                        pageRequest.size(),
+                                        page,
+                                        size,
                                         total
                                 );
                             });

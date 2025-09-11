@@ -1,9 +1,9 @@
 package co.com.crediya.model.loanoperation;
 
 import lombok.Builder;
-import lombok.AllArgsConstructor;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -12,8 +12,6 @@ import java.math.RoundingMode;
 
 @Getter
 @Setter
-@NoArgsConstructor
-//@AllArgsConstructor
 @Builder(toBuilder = true)
 public class LoanOperation {
 
@@ -31,6 +29,10 @@ public class LoanOperation {
         );
 
         return amount.multiply(monthlyFee).divide(divisor, 2, RoundingMode.HALF_UP);
+    }
+
+    private LoanOperation() {
+        throw new IllegalStateException("Utility class");
     }
 
 }

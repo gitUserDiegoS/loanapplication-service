@@ -6,6 +6,9 @@ public class ErrorCodes {
 
     public static final String CONFLICT = "CONFLICT";
 
+    public static final String UNAUTHORIZED = "UNAUTHORIZED";
+
+
     private ErrorCodes() {
         throw new IllegalStateException("Utility class");
     }

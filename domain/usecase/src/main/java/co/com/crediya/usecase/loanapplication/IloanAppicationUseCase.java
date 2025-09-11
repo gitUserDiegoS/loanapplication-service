@@ -1,6 +1,6 @@
 package co.com.crediya.usecase.loanapplication;
 
-import co.com.crediya.model.common.PageRequest;
+
 import co.com.crediya.model.common.PageResponse;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
@@ -12,7 +12,7 @@ public interface IloanAppicationUseCase {
 
     Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession);
 
-    Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, PageRequest pageRequest, String token);
+    Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token);
 
 
 }

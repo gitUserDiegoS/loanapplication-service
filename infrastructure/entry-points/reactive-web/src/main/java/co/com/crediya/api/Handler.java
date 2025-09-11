@@ -2,7 +2,7 @@ package co.com.crediya.api;
 
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.mapper.LoanMapperDto;
-import co.com.crediya.model.common.PageRequest;
+
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.usersession.UserSession;
 import co.com.crediya.usecase.loanapplication.IloanAppicationUseCase;
@@ -50,19 +50,20 @@ public class Handler {
                 .doOnError(err -> log.error("Error in handler listenCreateLoanApplication {} ", err.getMessage(), err));
     }
 
+    @PreAuthorize("hasAnyRole('ADVISOR')")
     public Mono<ServerResponse> listenGetLoanApplications(ServerRequest serverRequest) {
 
         String token = serverRequest.headers().firstHeader(HttpHeaders.AUTHORIZATION);
 
 
         int status = Integer.parseInt(serverRequest.queryParam("status").orElse("1"));
+        String email = serverRequest.queryParam("email").orElse(null);
         int page = Integer.parseInt(serverRequest.queryParam("page").orElse("0"));
         int size = Integer.parseInt(serverRequest.queryParam("size").orElse("10"));
+        int offset = page * size;
 
 
-        PageRequest pageRequest = new PageRequest(page, size);
-
-        return loanApplicationUseCase.getLoanApplications(status, pageRequest,token)
+        return loanApplicationUseCase.getLoanApplications(status, email, page, size, offset, token)
 
                 .flatMap(user -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)

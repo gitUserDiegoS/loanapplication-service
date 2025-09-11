@@ -4,7 +4,11 @@ import co.com.crediya.api.config.LoanApplicationPath;
 import co.com.crediya.api.dto.ApplicationResponseDto;
 import co.com.crediya.api.dto.ErrorResponseDto;
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
+import co.com.crediya.model.common.PageResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -66,7 +70,70 @@ public class RouterRest {
                                                             ErrorResponseDto.class)))
                             }
                     )
-            )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/solicitud",
+                    produces = {MediaType.APPLICATION_JSON_VALUE},
+                    method = RequestMethod.GET,
+                    beanClass = Handler.class,
+                    beanMethod = "listenGetLoanApplications",
+                    operation = @Operation(
+                            operationId = "getPendingLoans",
+                            summary = "Get loan pending for review",
+                            parameters = {
+                                    @Parameter(
+                                            name = "status",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Status param",
+                                            schema = @Schema(type = "integer")
+
+                                    ),
+                                    @Parameter(
+                                            name = "page",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Page to use in pagination",
+                                            schema = @Schema(type = "integer")
+
+                                    ),
+                                    @Parameter(
+                                            name = "size",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Size to use in pagination",
+                                            schema = @Schema(type = "integer")
+
+                                    ),
+                                    @Parameter(
+                                            name = "email",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Filter by email field (optional)",
+                                            schema = @Schema(type = "integer")
+
+                                    )
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "User found successfully",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            PageResponse.class))),
+                                    @ApiResponse(responseCode = "401", description = "Unauthorized session",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            ErrorResponseDto.class))),
+                                    @ApiResponse(responseCode = "400", description = "Bad request due to validation result",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            ErrorResponseDto.class))),
+                                    @ApiResponse(responseCode = "500", description = "Internal error",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            ErrorResponseDto.class)))
+                            }
+                    )
+            ),
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(loanApplicationPath.getLoans()), loanHandler::listenCreateLoanApplication)
