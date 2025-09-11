@@ -12,9 +12,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.attribute.UserPrincipalNotFoundException;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -41,10 +43,31 @@ public class RestConsumer implements UserGatewayRepository {
                 .doOnError(err -> log.error("Error in client RestConsumer-->findUserByIdDocument {} ", err.getMessage(), err));
     }
 
+    @Override
+    public Flux<User> getUsersByEmailBatch(List<String> emails, String token) {
+        log.info("Diego log-->" + token);
+
+        log.info("Diego emails-->" + emails);
+
+
+        return client.post()
+                .uri("/api/v1/usuarios/emails")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .bodyValue(emails)
+                .retrieve()
+                .bodyToFlux(UserFoundResponseDto.class)
+                .map(this::toDomain)
+                .doOnError(err -> log.error("Error in client RestConsumer-->findUserByIdDocument {} ", err.getMessage(), err));
+
+    }
+
     private User toDomain(UserFoundResponseDto dto) {
         return User.builder()
                 .idDocument(dto.getIdDocument())
                 .email(dto.getEmail())
+                .name(dto.getName() + " " + dto.getLastname())
+                .lastname(dto.getName())
+                .salaryBase(dto.getSalaryBase())
                 .build();
     }
 

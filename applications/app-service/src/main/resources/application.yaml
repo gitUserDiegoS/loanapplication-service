@@ -68,3 +68,10 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}
+
+whitelist:
+  paths:
+    - "/v3/api-docs"
+    - "/actuator/health"
+    - "/actuator/info"
+    - "/swagger-ui/index.html"

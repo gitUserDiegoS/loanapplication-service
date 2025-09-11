@@ -54,7 +54,7 @@ public class ValidateJwtToken implements TokenValidatorRepository {
             return Mono.just(session);
         } catch (JwtException e) {
             log.error("Not valid token received");
-            return Mono.error(new NotValidTokenException(INVALID_TOKEN));
+            return Mono.error(new JwtException(INVALID_TOKEN));
         }
     }
 }
