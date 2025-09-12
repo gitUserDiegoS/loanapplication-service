@@ -1,21 +1,21 @@
-# Etapa 1: build con Gradle y JDK 21
+# stage 1: build with Gradle y JDK 21
 FROM gradle:8.14.3-jdk-21-and-24-noble AS builder
 WORKDIR /app
 
-# Copiar todo el proyecto desde el contexto (root del microservicio)
+# copy the whole project
 COPY . .
 
-# Dar permisos al wrapper
+# give permission
 RUN chmod +x ./gradlew
 
-# Compilar el proyecto
+# compile project
 RUN ./gradlew clean build -x validateStructure -x test --no-daemon
 
-# Etapa 2: runtime
+# stage 2: runtime
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# Copiar el jar generado desde el módulo de aplicación
+# copy generated jar
 COPY --from=builder /app/applications/app-service/build/libs/*.jar app.jar
 
 EXPOSE 8082
