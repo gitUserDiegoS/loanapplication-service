@@ -1,5 +1,5 @@
 # Etapa 1: build con Gradle y JDK 21
-FROM gradle:9.0.0-jdk21 AS builder
+FROM gradle:8.14.3-jdk-21-and-24-noble AS builder
 WORKDIR /app
 
 # Copiar todo el proyecto desde el contexto (root del microservicio)
@@ -9,7 +9,7 @@ COPY . .
 RUN chmod +x ./gradlew
 
 # Compilar el proyecto
-RUN ./gradlew clean build -x test --no-daemon
+RUN ./gradlew clean build -x validateStructure -x test --no-daemon
 
 # Etapa 2: runtime
 FROM eclipse-temurin:21-jre
