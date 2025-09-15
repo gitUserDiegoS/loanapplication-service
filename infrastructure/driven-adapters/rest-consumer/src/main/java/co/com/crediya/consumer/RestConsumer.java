@@ -45,10 +45,6 @@ public class RestConsumer implements UserGatewayRepository {
 
     @Override
     public Flux<User> getUsersByEmailBatch(List<String> emails, String token) {
-        log.info("Diego log-->" + token);
-
-        log.info("Diego emails-->" + emails);
-
 
         return client.post()
                 .uri("/api/v1/usuarios/emails")

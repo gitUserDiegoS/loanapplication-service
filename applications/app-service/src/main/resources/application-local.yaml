@@ -1,0 +1,16 @@
+server:
+  port: 8082
+spring:
+  r2dbc:
+    host: ${R2DBC_HOST_LOAN:localhost}
+    port: "3306"
+    username: ${USER_DB}
+    password: ${PASS_DB}
+    database: "loanapplication-db"
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
+adapter:
+  restconsumer:
+    timeout: 5000
+    url: "http://localhost:8080"
+
