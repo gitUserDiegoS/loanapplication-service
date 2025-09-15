@@ -9,7 +9,7 @@ spring:
       path: "/h2"
   profiles:
     #uncomment when use ide to run application
-    #active: local
+    active: local
     include: null
 management:
   endpoints:

@@ -8,10 +8,13 @@ import reactor.core.publisher.Mono;
 
 public interface LoanApplicationRepository {
 
-    Mono<LoanApplication> createLoanApplication(LoanApplication user);
+    Mono<LoanApplication> createLoanApplication(LoanApplication loan);
 
     Flux<PendingLoanApplication> findByStatus(int status, String email, int size, int offset);
 
     Mono<Long> countByStatus(int status);
+
+    Mono<LoanApplication> updateStatusLoanApplication(LoanApplication loanApplication);
+
 
 }

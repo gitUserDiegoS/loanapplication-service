@@ -16,6 +16,7 @@ import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
 import lombok.RequiredArgsConstructor;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -69,9 +70,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                     List<PendingLoanApplication> loans = tuple.getT1();
                     Long total = tuple.getT2();
 
-                    List<String> emails = loans.stream()
-                            .map(PendingLoanApplication::getEmail)
-                            .toList();
+                    Flux<String> emails = Flux.fromIterable(loans)  // crea Flux<PendingLoanApplication>
+                            .map(PendingLoanApplication::getEmail);
 
                     return userGatewayRepository.getUsersByEmailBatch(emails, token)
                             .collectMap(User::getEmail)
@@ -101,6 +101,28 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                 sol.getAmount(), sol.getTerm(), sol.getInterestRate()
         ));
         return sol;
+    }
+
+    @Override
+    public Mono<LoanApplication> updateLoanApplication(LoanApplication loanApplication, String token) {
+
+
+        return loanApplicationRepository.updateStatusLoanApplication(loanApplication)
+                .flatMap(loan -> {
+
+                    Flux<String> emailLoanClient = Flux.just(loan.getEmail());
+
+                    return userGatewayRepository.getUsersByEmailBatch(emailLoanClient, token)
+                            .collectList()
+                            .map(user -> {
+                                LoanApplication nameClient = new LoanApplication();
+                                nameClient.setEmail(user.getFirst().getName());
+                                return nameClient;
+                            });
+
+
+                });
+
     }
 
 }

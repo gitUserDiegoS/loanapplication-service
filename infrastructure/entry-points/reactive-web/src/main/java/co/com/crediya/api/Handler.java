@@ -1,6 +1,7 @@
 package co.com.crediya.api;
 
 import co.com.crediya.api.dto.LoanApplicationRequestDto;
+import co.com.crediya.api.dto.LoanStatusRequestDto;
 import co.com.crediya.api.mapper.LoanMapperDto;
 
 import co.com.crediya.model.loanapplication.LoanApplication;
@@ -73,6 +74,27 @@ public class Handler {
 
 
     }
+
+    @PreAuthorize("hasAnyRole('ADVISOR')")
+    public Mono<ServerResponse> listenUpdateStatusLoanApplication(ServerRequest serverRequest) {
+        String token = serverRequest.headers().firstHeader(HttpHeaders.AUTHORIZATION);
+
+        return getSessionContext()
+                .flatMap(userSession ->
+                        serverRequest.bodyToMono(LoanStatusRequestDto.class)
+                                .flatMap(dto -> {
+                                    LoanApplication loanStatus = loanMapperDto.toModel(dto);
+                                    return loanApplicationUseCase.updateLoanApplication(loanStatus, token);
+                                })
+
+
+                )
+                .flatMap(saved -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(saved))
+                .doOnError(err -> log.error("Error in handler listenCreateLoanApplication {} ", err.getMessage(), err));
+    }
+
 
     private static Mono<UserSession> getSessionContext() {
         return ReactiveSecurityContextHolder.getContext()

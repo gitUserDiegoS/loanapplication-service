@@ -25,8 +25,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
@@ -134,10 +133,43 @@ public class RouterRest {
                             }
                     )
             ),
+            @RouterOperation(
+                    path = "/api/v1/solicitud",
+                    produces = {MediaType.APPLICATION_JSON_VALUE},
+                    method = RequestMethod.PUT,
+                    beanClass = Handler.class,
+                    beanMethod = "listenUpdateStatusLoanApplication",
+                    operation = @Operation(
+                            operationId = "updateLoan",
+                            summary = "Update status for a loan application (approved or rejected)",
+                            requestBody = @RequestBody
+                                    (description = "LoanApplicationRequestDto", required = true,
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = LoanApplicationRequestDto.class)
+                                            )
+                                    ),
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Loan Application created successfully",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            ApplicationResponseDto.class))),
+                                    @ApiResponse(responseCode = "400", description = "Bad request due to validation result",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            ErrorResponseDto.class))),
+                                    @ApiResponse(responseCode = "500", description = "Internal error",
+                                            content = @Content(
+                                                    schema = @Schema(implementation =
+                                                            ErrorResponseDto.class)))
+                            }
+                    )
+            ),
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(loanApplicationPath.getLoans()), loanHandler::listenCreateLoanApplication)
-                .andRoute(GET(loanApplicationPath.getLoans()), loanHandler::listenGetLoanApplications);
+                .andRoute(GET(loanApplicationPath.getLoans()), loanHandler::listenGetLoanApplications)
+                .andRoute(PUT(loanApplicationPath.getLoans()), loanHandler::listenUpdateStatusLoanApplication);
 
     }
 }

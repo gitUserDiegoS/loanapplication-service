@@ -74,4 +74,20 @@ public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
         return pendingLoanRepo.countByStatus(status);
     }
 
+    @Override
+    public Mono<LoanApplication> updateStatusLoanApplication(LoanApplication loanApplication) {
+        log.trace("Updating loan application with status: {}", loanApplication.getStatus());
+        return super.findById(loanApplication.getIdApplication())
+                .flatMap(loanFound -> {
+                    loanFound.setStatus(loanApplication.getStatus());
+
+                    return super.save(loanFound)
+                            .as(operator::transactional)
+                            .doOnNext(savedLoanApplication -> log.trace("Loan application updated successfully with id: {}", savedLoanApplication.getIdApplication()))
+                            .doOnError(error -> log.error("Error when try to update the application's status, failed with message: {}", error.getMessage()));
+                });
+
+
+    }
 }
+
