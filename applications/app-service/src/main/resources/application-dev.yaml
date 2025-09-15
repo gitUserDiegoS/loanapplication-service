@@ -1,0 +1,15 @@
+server:
+  port: 8080
+spring:
+  r2dbc:
+    host: ${R2DBC_HOST_LOAN}
+    port: "3306"
+    username: ${CREDI_USER_DB}
+    password: ${CREDI_PASS_DB}
+    database: "loanapplication-db"
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
+adapter:
+  restconsumer:
+    timeout: 5000
+    url: "http://authentication-service:8080"

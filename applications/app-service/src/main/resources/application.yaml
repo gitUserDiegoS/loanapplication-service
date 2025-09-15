@@ -1,5 +1,3 @@
-server:
-  port: 8082
 spring:
   application:
     name: "loanapplication-service"
@@ -10,13 +8,9 @@ spring:
       enabled: true
       path: "/h2"
   profiles:
+    #uncomment when use ide to run application
+    #active: local
     include: null
-  r2dbc:
-    host: "localhost"
-    port: "3306"
-    username: ${USER_DB}
-    password: ${PASS_DB}
-    database: "loanapplication-db"
 management:
   endpoints:
     web:
@@ -29,8 +23,6 @@ management:
   health:
     circuitbreakers:
       enabled: true
-cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
 logging:
   level:
     root: "INFO"
@@ -38,10 +30,6 @@ logging:
 routes:
   paths:
     loans: "/api/v1/solicitud"
-adapter:
-  restconsumer:
-    timeout: 5000
-    url: "http://localhost:8080"
 resilience4j:
   circuitbreaker:
     instances:
