@@ -28,7 +28,7 @@ public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
 
     private final TransactionalOperator operator;
 
-    private final PendingLoanReactiveRepository pendingLoanRepo; // 👈 nuevo
+    private final PendingLoanReactiveRepository pendingLoanRepo;
 
     public LoanApplicationRepositoryAdapter(LoanApplicationReactiveRepository repository, PendingLoanReactiveRepository pendingLoanRepo, ObjectMapper mapper, TransactionalOperator operator) {
         /**
