@@ -12,6 +12,8 @@ import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
+//import co.com.crediya.model.loannotification.gateways.LoannotificationRepository;
+import co.com.crediya.model.loannotification.gateways.LoannotificationRepository;
 import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     private final LoanApplicationRepository loanApplicationRepository;
 
     private final LoanTypeRepository loanTypeRepository;
+
+    private final LoannotificationRepository loannotificationRepository;
 
 
     @Override
@@ -106,11 +110,16 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     @Override
     public Mono<LoanApplication> updateLoanApplication(LoanApplication loanApplication, String token) {
 
+        loannotificationRepository.sendLoanStatusNotification(new LoanApplication());
+
 
         return loanApplicationRepository.updateStatusLoanApplication(loanApplication)
                 .flatMap(loan -> {
 
                     Flux<String> emailLoanClient = Flux.just(loan.getEmail());
+
+                    //Under construction, creating call to sqs
+                    loannotificationRepository.sendLoanStatusNotification(loan);
 
                     return userGatewayRepository.getUsersByEmailBatch(emailLoanClient, token)
                             .collectList()
