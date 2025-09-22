@@ -4,8 +4,10 @@ import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.dto.LoanStatusRequestDto;
 import co.com.crediya.api.mapper.LoanMapperDto;
 
+import co.com.crediya.api.mapper.StatusLoanMapperDto;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.usersession.UserSession;
+import co.com.crediya.model.utilenum.StatusEnum;
 import co.com.crediya.usecase.loanapplication.IloanAppicationUseCase;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -31,6 +33,9 @@ public class Handler {
 
     private final LoanMapperDto loanMapperDto;
 
+    private final StatusLoanMapperDto statusMapperDto;
+
+
     @PreAuthorize("hasAnyRole('CLIENT')")
     public Mono<ServerResponse> listenCreateLoanApplication(ServerRequest serverRequest) {
         String token = serverRequest.headers().firstHeader(HttpHeaders.AUTHORIZATION);
@@ -51,6 +56,13 @@ public class Handler {
                 .doOnError(err -> log.error("Error in handler listenCreateLoanApplication {} ", err.getMessage(), err));
     }
 
+    /**
+     * Get all a loan application from a given status(example: status 1 for pending loans)
+     *
+     * @param serverRequest handles the starter data flow, and maps to {@link LoanStatusRequestDto}
+     * @return status saved
+     * @see co.com.crediya.api.dto.StatusLoanResponseDto
+     */
     @PreAuthorize("hasAnyRole('ADVISOR')")
     public Mono<ServerResponse> listenGetLoanApplications(ServerRequest serverRequest) {
 
@@ -75,27 +87,34 @@ public class Handler {
 
     }
 
+    /**
+     * Update the status for a loan application(Accepted, or Rejected)
+     *
+     * @param serverRequest handles the starter data flow, and maps to {@link LoanStatusRequestDto}
+     * @return status saved
+     * @see co.com.crediya.api.dto.StatusLoanResponseDto
+     */
     @PreAuthorize("hasAnyRole('ADVISOR')")
     public Mono<ServerResponse> listenUpdateStatusLoanApplication(ServerRequest serverRequest) {
         String token = serverRequest.headers().firstHeader(HttpHeaders.AUTHORIZATION);
 
-        return getSessionContext()
-                .flatMap(userSession ->
-                        serverRequest.bodyToMono(LoanStatusRequestDto.class)
-                                .flatMap(dto -> {
-                                    LoanApplication loanStatus = loanMapperDto.toModel(dto);
-                                    return loanApplicationUseCase.updateLoanApplication(loanStatus, token);
-                                })
-
-
-                )
+        return serverRequest.bodyToMono(LoanStatusRequestDto.class)
+                .flatMap(dto -> {
+                    LoanApplication loanStatus = loanMapperDto.toModel(dto);
+                    return loanApplicationUseCase.updateLoanApplication(loanStatus, token);
+                })
+                .map(loan -> statusMapperDto.toResponse(StatusEnum.translatefromCode(loan.getStatus())))
                 .flatMap(saved -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(saved))
-                .doOnError(err -> log.error("Error in handler listenCreateLoanApplication {} ", err.getMessage(), err));
+                .doOnError(err -> log.error("Error in handler listenUpdateStatusLoanApplication {} ", err.getMessage(), err));
     }
 
-
+    /**
+     * Get Session context to recover the email from user
+     *
+     * @return session user object
+     */
     private static Mono<UserSession> getSessionContext() {
         return ReactiveSecurityContextHolder.getContext()
                 .doOnNext(user -> log.trace("Init process, getting context"))

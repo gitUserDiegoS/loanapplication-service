@@ -17,7 +17,7 @@ public class LoanStatusRequestDto {
     @Schema(description = "id of a loan application", example = "1")
     private Long idApplication;
 
-    @Schema(description = "Status to update the loan application", example = "2 Approved; 3 Rejected")
+    @Schema(description = "Status to update for the loan application", example = "2 Approved; 3 Rejected")
     private Integer status;
 
 }

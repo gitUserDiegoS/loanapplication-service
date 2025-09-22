@@ -12,10 +12,11 @@ import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
-//import co.com.crediya.model.loannotification.gateways.LoannotificationRepository;
-import co.com.crediya.model.loannotification.gateways.LoannotificationRepository;
+import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
+import co.com.crediya.model.utilenum.StatusEnum;
 import lombok.RequiredArgsConstructor;
 
 import reactor.core.publisher.Flux;
@@ -32,7 +33,7 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
     private final LoanTypeRepository loanTypeRepository;
 
-    private final LoannotificationRepository loannotificationRepository;
+    private final LoanNotificationRepository loannotificationRepository;
 
 
     @Override
@@ -58,7 +59,17 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
     }
 
-
+    /**
+     * Get all loan applications in status given (1 for example return all pending loans)
+     *
+     * @param status of the loan application
+     * @param email  related to the customer, this is a optional filter
+     * @param page   used for set the page of query
+     * @param size   of the query result
+     * @param offset with position of query
+     * @param token  with jwt authorization data
+     * @return pageable result
+     */
     @Override
     public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token) {
 
@@ -107,31 +118,25 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
         return sol;
     }
 
+    /**
+     * Update a loan application by changing status to Accepted(2), or Rejected(3)
+     *
+     * @param loanApplication loan application to update
+     * @param token           header Authorization value
+     * @return Loan updated
+     */
     @Override
     public Mono<LoanApplication> updateLoanApplication(LoanApplication loanApplication, String token) {
 
-        loannotificationRepository.sendLoanStatusNotification(new LoanApplication());
 
-
-        return loanApplicationRepository.updateStatusLoanApplication(loanApplication)
-                .flatMap(loan -> {
-
-                    Flux<String> emailLoanClient = Flux.just(loan.getEmail());
-
-                    //Under construction, creating call to sqs
-                    loannotificationRepository.sendLoanStatusNotification(loan);
-
-                    return userGatewayRepository.getUsersByEmailBatch(emailLoanClient, token)
-                            .collectList()
-                            .map(user -> {
-                                LoanApplication nameClient = new LoanApplication();
-                                nameClient.setEmail(user.getFirst().getName());
-                                return nameClient;
-                            });
-
-
-                });
-
+        return loanApplicationRepository.updateStatusLoanApplication(loanApplication)//update application, (2=Appoved,3=Rejected)
+                .flatMap(updatedLoan ->
+                        // send message after update status
+                        loannotificationRepository.send(LoanNotification.builder()
+                                        .idApplication(loanApplication.getIdApplication())
+                                        .status(StatusEnum.fromCode(loanApplication.getStatus()))
+                                        .build())
+                                .thenReturn(updatedLoan)
+                );
     }
-
 }

@@ -1,5 +1,6 @@
 package co.com.crediya.usecase.loanapplication;
 
+import co.com.crediya.model.common.PageResponse;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.LoanType;
 import co.com.crediya.model.loanapplication.User;
@@ -9,18 +10,27 @@ import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeExcepti
 import co.com.crediya.model.loanapplication.exceptions.UserNotFoundException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
+import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 
+import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.model.usersession.UserSession;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -37,12 +47,20 @@ class LoanApplicationUserCaseTest {
     @Mock
     private LoanTypeRepository loanTypeRepository;
 
+    @Mock
+    private LoanNotificationRepository loannotificationRepository;
+
     @InjectMocks
     private LoanApplicationUseCase loanApplicationUseCase;
 
     private final User user = User.builder()
             .idDocument("123456")
-            .email("test@email.com")
+            .email("test1@email.com")
+            .build();
+
+    private final User anotherUser = User.builder()
+            .idDocument("123457")
+            .email("test2@email.com")
             .build();
 
     private final User userFromNotSession = User.builder()
@@ -63,13 +81,38 @@ class LoanApplicationUserCaseTest {
             .build();
 
     private final UserSession userSession = UserSession.builder()
-            .email("test@email.com")
+            .email("test1@email.com")
             .name("role")
             .build();
 
+    private final PendingLoanApplication pendingLoanApplicationOne = PendingLoanApplication.builder()
+            .amount(BigDecimal.ONE)
+            .term(2)
+            .email("test1@email.com")
+            .name("name")
+            .loanType("1")
+            .interestRate(BigDecimal.ONE)
+            .status("1")
+            .baseSalary(BigDecimal.ONE)
+            .monthlyFee(BigDecimal.ONE)
+            .build();
+
+    private final PendingLoanApplication pendingLoanApplicationTwo = PendingLoanApplication.builder()
+            .amount(BigDecimal.TWO)
+            .term(2)
+            .email("test2@email.com")
+            .name("name")
+            .loanType("1")
+            .interestRate(BigDecimal.TWO)
+            .status("1")
+            .baseSalary(BigDecimal.TWO)
+            .monthlyFee(BigDecimal.TWO)
+            .build();
+
+    List<PendingLoanApplication> loansList = List.of(pendingLoanApplicationOne, pendingLoanApplicationTwo);
+
     @Test
     void saveLoanApplication_success() {
-
 
         when(loanTypeRepository.findByLoanType(any(Integer.class)))
                 .thenReturn(Mono.just(loanType));
@@ -84,9 +127,7 @@ class LoanApplicationUserCaseTest {
         Mono<LoanApplication> result = loanApplicationUseCase.saveLoanApplication(loanApplication, "123456", "tokenJwt", userSession);
 
         StepVerifier.create(result)
-                .expectNextMatches(app ->
-                        app.getEmail().equals("test@email.com") &&
-                                app.getStatus() == 1)
+                .expectNext(loanApplication)
                 .verifyComplete();
 
         verify(loanTypeRepository).findByLoanType(1);
@@ -166,5 +207,63 @@ class LoanApplicationUserCaseTest {
         verifyNoInteractions(loanApplicationRepository);
 
     }
+
+
+    @Test
+    void shouldGetLoanApplicationsPaginated() {
+
+        long mockCount = 2L;
+
+        when(loanApplicationRepository.findByStatus(any(Integer.class), anyString(), any(Integer.class), any(Integer.class)))
+                .thenReturn(Flux.fromIterable(loansList));
+        when(loanApplicationRepository.countByStatus(any(Integer.class)))
+                .thenReturn(Mono.just(mockCount));
+
+        when(userGatewayRepository.getUsersByEmailBatch(any(Flux.class), any(String.class)))
+                .thenReturn(Flux.just(user, anotherUser));
+
+
+        Mono<PageResponse<PendingLoanApplication>> resultMono =
+                loanApplicationUseCase.getLoanApplications(1, "test2@email.com", 0, 5, 0, "token");
+
+        resultMono.blockOptional().ifPresent(response -> {
+            assertNotNull(response);
+            assertEquals(mockCount, response.totalElements());
+            assertEquals(5, response.size());
+            assertEquals(0, response.page());
+            assertEquals(2, response.content().size());
+
+            PendingLoanApplication enrichedLoan1 = response.content().get(0);
+            assertEquals("test1@email.com", enrichedLoan1.getEmail());
+
+            PendingLoanApplication enrichedLoan2 = response.content().get(1);
+            assertEquals("test2@email.com", enrichedLoan2.getEmail());
+        });
+
+
+    }
+
+    @Test
+    void updateLoanApplication_should_update_status_and_send_notification() {
+
+        loanApplication.setStatus(2);
+
+
+        when(loanApplicationRepository.updateStatusLoanApplication(any(LoanApplication.class)))
+                .thenReturn(Mono.just(loanApplication));
+
+
+        when(loannotificationRepository.send(any(LoanNotification.class)))
+                .thenReturn(Mono.empty());
+
+        Mono<LoanApplication> resultMono = loanApplicationUseCase.updateLoanApplication(loanApplication, "tokem");
+
+        StepVerifier.create(resultMono)
+                .expectNext(loanApplication)
+                .verifyComplete();
+
+
+    }
+
 
 }
