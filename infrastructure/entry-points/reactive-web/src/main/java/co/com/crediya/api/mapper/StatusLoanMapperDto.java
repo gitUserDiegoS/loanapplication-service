@@ -1,17 +1,15 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.ApplicationResponseDto;
-import co.com.crediya.api.dto.LoanApplicationRequestDto;
 import co.com.crediya.api.dto.LoanStatusRequestDto;
+import co.com.crediya.api.dto.StatusLoanResponseDto;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface LoanMapperDto {
+public interface StatusLoanMapperDto {
 
-    LoanApplication toModel(LoanApplicationRequestDto loanApplicationRequestDto);
 
-    ApplicationResponseDto toResponse(LoanApplication user);
+    StatusLoanResponseDto toResponse(String status);
 
     LoanApplication toModel(LoanStatusRequestDto loanStatusRequestDto);
 

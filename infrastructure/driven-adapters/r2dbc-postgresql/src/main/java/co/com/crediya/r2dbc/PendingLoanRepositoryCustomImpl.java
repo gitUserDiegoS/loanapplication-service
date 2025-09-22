@@ -1,7 +1,6 @@
 package co.com.crediya.r2dbc;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
@@ -31,8 +30,11 @@ public class PendingLoanRepositoryCustomImpl implements PendingLoanRepositoryCus
     public static final String OFFSET = "offset";
 
 
-    @Autowired
     private DatabaseClient databaseClient;
+
+    public PendingLoanRepositoryCustomImpl(DatabaseClient databaseClient) {
+        this.databaseClient = databaseClient;
+    }
 
     @Override
     public Flux<PendingLoanDto> findLoansByStatus(int status, String email, int size, int offset) {
@@ -50,17 +52,17 @@ public class PendingLoanRepositoryCustomImpl implements PendingLoanRepositoryCus
 
 
         return statement
-                .map((row, rowMetadata) -> {
-                    //return the record mapped
-                    return new PendingLoanDto(
-                            row.get(AMOUNT, BigDecimal.class),
-                            row.get(TERM, Integer.class),
-                            row.get(EMAIL_FIELD, String.class),
-                            row.get(NAME, String.class),
-                            row.get(RATE, BigDecimal.class),
-                            row.get(STATUS, String.class)
-                    );
-                })
+                .map((row, rowMetadata) ->
+                        //return the record mapped
+                        new PendingLoanDto(
+                                row.get(AMOUNT, BigDecimal.class),
+                                row.get(TERM, Integer.class),
+                                row.get(EMAIL_FIELD, String.class),
+                                row.get(NAME, String.class),
+                                row.get(RATE, BigDecimal.class),
+                                row.get(STATUS, String.class)
+                        )
+                )
                 .all();
 
 

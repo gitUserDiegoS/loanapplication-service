@@ -12,10 +12,14 @@ import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
+import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
+import co.com.crediya.model.utilenum.StatusEnum;
 import lombok.RequiredArgsConstructor;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -28,6 +32,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     private final LoanApplicationRepository loanApplicationRepository;
 
     private final LoanTypeRepository loanTypeRepository;
+
+    private final LoanNotificationRepository loannotificationRepository;
 
 
     @Override
@@ -53,7 +59,17 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
 
     }
 
-
+    /**
+     * Get all loan applications in status given (1 for example return all pending loans)
+     *
+     * @param status of the loan application
+     * @param email  related to the customer, this is a optional filter
+     * @param page   used for set the page of query
+     * @param size   of the query result
+     * @param offset with position of query
+     * @param token  with jwt authorization data
+     * @return pageable result
+     */
     @Override
     public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token) {
 
@@ -69,9 +85,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                     List<PendingLoanApplication> loans = tuple.getT1();
                     Long total = tuple.getT2();
 
-                    List<String> emails = loans.stream()
-                            .map(PendingLoanApplication::getEmail)
-                            .toList();
+                    Flux<String> emails = Flux.fromIterable(loans)  // crea Flux<PendingLoanApplication>
+                            .map(PendingLoanApplication::getEmail);
 
                     return userGatewayRepository.getUsersByEmailBatch(emails, token)
                             .collectMap(User::getEmail)
@@ -103,4 +118,25 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
         return sol;
     }
 
+    /**
+     * Update a loan application by changing status to Accepted(2), or Rejected(3)
+     *
+     * @param loanApplication loan application to update
+     * @param token           header Authorization value
+     * @return Loan updated
+     */
+    @Override
+    public Mono<LoanApplication> updateLoanApplication(LoanApplication loanApplication, String token) {
+
+
+        return loanApplicationRepository.updateStatusLoanApplication(loanApplication)//update application, (2=Appoved,3=Rejected)
+                .flatMap(updatedLoan ->
+                        // send message after update status
+                        loannotificationRepository.send(LoanNotification.builder()
+                                        .idApplication(loanApplication.getIdApplication())
+                                        .status(StatusEnum.fromCode(loanApplication.getStatus()))
+                                        .build())
+                                .thenReturn(updatedLoan)
+                );
+    }
 }

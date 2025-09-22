@@ -3,6 +3,7 @@ package co.com.crediya.config;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
+import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.usecase.loanapplication.LoanApplicationUseCase;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -53,6 +54,11 @@ class UseCasesConfigTest {
         }
 
         @Bean
+        public LoanNotificationRepository loanNotificationRepository() {
+            return Mockito.mock(LoanNotificationRepository.class);
+        }
+
+        @Bean
         public MyUseCase myUseCase() {
             return new MyUseCase();
         }
@@ -68,10 +74,13 @@ class UseCasesConfigTest {
         public LoanApplicationUseCase loanApplicationUseCase(
                 UserGatewayRepository userGatewayRepository,
                 LoanApplicationRepository loanApplicationRepository,
-                LoanTypeRepository loanTypeRepository
+                LoanTypeRepository loanTypeRepository,
+                LoanNotificationRepository loannotificationRepository
         ) {
-            return new LoanApplicationUseCase(userGatewayRepository, loanApplicationRepository, loanTypeRepository);
+            return new LoanApplicationUseCase(userGatewayRepository, loanApplicationRepository, loanTypeRepository, loannotificationRepository);
         }
 
     }
+
+
 }

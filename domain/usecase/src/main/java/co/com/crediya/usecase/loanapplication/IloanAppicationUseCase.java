@@ -14,5 +14,7 @@ public interface IloanAppicationUseCase {
 
     Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token);
 
+    Mono<LoanApplication> updateLoanApplication(LoanApplication loanApplication, String token);
+
 
 }

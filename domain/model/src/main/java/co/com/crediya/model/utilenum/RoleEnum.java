@@ -1,4 +1,4 @@
-package co.com.crediya.model.roleenum;
+package co.com.crediya.model.utilenum;
 
 import java.util.Arrays;
 

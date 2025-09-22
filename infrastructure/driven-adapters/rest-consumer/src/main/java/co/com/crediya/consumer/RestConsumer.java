@@ -44,12 +44,12 @@ public class RestConsumer implements UserGatewayRepository {
     }
 
     @Override
-    public Flux<User> getUsersByEmailBatch(List<String> emails, String token) {
+    public Flux<User> getUsersByEmailBatch(Flux<String> emails, String token) {
 
         return client.post()
                 .uri("/api/v1/usuarios/emails")
                 .header(HttpHeaders.AUTHORIZATION, token)
-                .bodyValue(emails)
+                .body(emails.collectList(), List.class)
                 .retrieve()
                 .bodyToFlux(UserFoundResponseDto.class)
                 .map(this::toDomain)

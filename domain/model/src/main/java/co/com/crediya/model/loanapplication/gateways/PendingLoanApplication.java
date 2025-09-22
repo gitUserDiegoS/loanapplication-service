@@ -19,16 +19,11 @@ public class PendingLoanApplication {
     private BigDecimal amount;
     private Integer term;
     private String email;
-
-    private String name;//revisar
-
-
+    private String name;
     private String loanType;
     private BigDecimal interestRate;
-
-    private String status;//revisar
-    private BigDecimal baseSalary;//revisar
-
+    private String status;
+    private BigDecimal baseSalary;
     private BigDecimal monthlyFee;
 
 }
