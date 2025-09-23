@@ -4,6 +4,7 @@ package co.com.crediya.r2dbc;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
+import co.com.crediya.r2dbc.customrepository.PendingLoanReactiveRepository;
 import co.com.crediya.r2dbc.entity.LoanApplicationEntity;
 import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;

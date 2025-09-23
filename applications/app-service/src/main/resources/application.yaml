@@ -29,6 +29,7 @@ logging:
 routes:
   paths:
     loans: "/api/v1/solicitud"
+    debtCapacity: "/api/v1/calcular-capacidad"
 resilience4j:
   circuitbreaker:
     instances:

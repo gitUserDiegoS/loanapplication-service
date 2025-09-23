@@ -1,4 +1,4 @@
-package co.com.crediya.r2dbc;
+package co.com.crediya.r2dbc.customrepository;
 
 import co.com.crediya.r2dbc.entity.LoanApplicationEntity;
 import org.springframework.data.r2dbc.repository.Query;
