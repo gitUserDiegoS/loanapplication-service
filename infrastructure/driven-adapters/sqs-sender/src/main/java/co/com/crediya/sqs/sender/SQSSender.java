@@ -2,6 +2,7 @@ package co.com.crediya.sqs.sender;
 
 import co.com.crediya.model.loanautomaticvalidation.LoanAutomaticValidation;
 import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.LoanNotificationRequest;
 import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.sqs.sender.config.SQSSenderProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,13 @@ public class SQSSender implements LoanNotificationRepository {
                 .build();
     }
 
+    private SendMessageRequest buildRequestAutomaticValidation(String message) {
+        return SendMessageRequest.builder()
+                .queueUrl(properties.queueDebCapacityRequestUrl())
+                .messageBody(message)
+                .build();
+    }
+
     @Override
     public Mono<String> send(LoanNotification message) {
         return createAsyncJson(message)
@@ -45,23 +53,21 @@ public class SQSSender implements LoanNotificationRepository {
                 .map(SendMessageResponse::messageId);
     }
 
-    @Override
-    public Mono<String> createAsyncJson(LoanNotification notification) {
-        return Mono.fromCallable(() -> mapper.writeValueAsString(notification));
+    public <T> Mono<String> createAsyncJson(T sqsRequest) {
+        return Mono.fromCallable(() -> mapper.writeValueAsString(sqsRequest));
     }
-
 
 
     //Automatic Validation
     @Override
-    public Mono<Void> sendForValidation(String payload) {
-        SendMessageRequest request = SendMessageRequest.builder()
-                .queueUrl(properties.queueDebCapacityRequestUrl())
-                .messageBody(payload)
-                .build();
+    public Mono<String> sendForValidation(LoanNotificationRequest payload) {
+        return createAsyncJson(payload)
+                .map(this::buildRequestAutomaticValidation)
+                .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
+                .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
+                .doOnError(response -> log.error("error when send {}", response.getMessage()))
+                .map(SendMessageResponse::messageId);
 
-        return Mono.fromFuture(() -> client.sendMessage(request))
-                .then();
     }
 
     @Override

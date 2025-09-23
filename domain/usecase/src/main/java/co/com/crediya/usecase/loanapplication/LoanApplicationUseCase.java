@@ -13,7 +13,9 @@ import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
 import co.com.crediya.model.loanautomaticvalidation.LoanAutomaticValidation;
+import co.com.crediya.model.loannotification.Loan;
 import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.LoanNotificationRequest;
 import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
@@ -23,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -40,6 +44,20 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     @Override
     public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession) {
 
+
+        Loan aprobado1 = Loan.builder().amount(BigDecimal.valueOf(2000000))
+                .rate(BigDecimal.valueOf(15))
+                .term(24)
+                .status("APROBADO")
+                .build();
+
+        Loan aprobado2 = Loan.builder().amount(BigDecimal.valueOf(2000000))
+                .rate(BigDecimal.valueOf(15))
+                .term(24)
+                .status("APROBADO")
+                .build();
+
+        List<Loan> aprobado3 = List.of(aprobado1, aprobado2);
 
         String payload = """
                 {
@@ -80,14 +98,16 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                             loanApplication.setEmail(user.getEmail());
                             loanApplication.setStatus(1);
 
-                            return loanApplicationRepository.createLoanApplication(loanApplication);
+                            return loanApplicationRepository.createLoanApplication(loanApplication)
+                                    .map(savedLoan -> new LoanNotificationRequest(user.getSalaryBase(), loanApplication.getAmount(), validType.getInterestRate(), loanApplication.getTerm(), aprobado3));
                         })
 
                 )
-                .flatMap(updatedLoan ->
+                .flatMap(automaticValidation ->
                         // send message after update status
-                        loannotificationRepository.sendForValidation(payload)
-                                .thenReturn(updatedLoan)
+
+                        loannotificationRepository.sendForValidation(automaticValidation)
+                                .thenReturn(loanApplication)
                 );
 
 
@@ -105,7 +125,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
      * @return pageable result
      */
     @Override
-    public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token) {
+    public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page,
+                                                                          int size, int offset, String token) {
 
         Mono<List<PendingLoanApplication>> loansMono =
                 loanApplicationRepository.findByStatus(status, email, size, offset)

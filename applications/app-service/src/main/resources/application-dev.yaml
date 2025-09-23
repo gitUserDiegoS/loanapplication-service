@@ -16,3 +16,4 @@ adapter:
   sqs:
     queueUrl: "https://sqs.sa-east-1.amazonaws.com/027419662433/loan-notifier-sqs"
     queueDebCapacityRequestUrl: "https://sqs.sa-east-1.amazonaws.com/027419662433/debt-capacity-request-queue"
+    queueDebCapacityResponseUrl: "https://sqs.sa-east-1.amazonaws.com/027419662433/debt-capacity-response-queue"
