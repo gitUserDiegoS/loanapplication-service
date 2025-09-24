@@ -12,13 +12,13 @@ import java.math.BigDecimal;
 @Repository
 public class PendingLoanRepositoryCustomImpl implements PendingLoanRepositoryCustom {
 
+
     public static final String QUERY_LOAN = "select sol.monto as amount, sol.plazo as term, sol.email as email, tipo.nombre as name, tipo.tasa_interes as rate, estado.nombre as status " +
             "from solicitud sol " +
             "join tipo_prestamo tipo on tipo.id_tipo_prestamo = sol.id_tipo_prestamo " +
             "join estado estado on estado.id_estado = sol.id_estado " +
             "where sol.id_estado= :status " +
-            "and (:email is null or sol.email = :email) " +
-            "LIMIT :size OFFSET :offset";
+            "and (:email is null or sol.email = :email) ";
 
 
     public static final String EMAIL_FIELD = "email";
@@ -40,10 +40,18 @@ public class PendingLoanRepositoryCustomImpl implements PendingLoanRepositoryCus
     @Override
     public Flux<PendingLoanDto> findLoansByStatus(int status, String email, int size, int offset) {
 
-        var statement = databaseClient.sql(QUERY_LOAN)
-                .bind(STATUS, status)
-                .bind(SIZE, size)
-                .bind(OFFSET, offset);
+        StringBuilder queryBuilder = new StringBuilder();
+
+        queryBuilder.append(QUERY_LOAN);
+
+        //append pagination when size and offset are provided
+        if (size != -1 && offset != -1) {
+            queryBuilder.append("LIMIT :size OFFSET :offset");
+        }
+
+        var statement = databaseClient.sql(queryBuilder.toString())
+                .bind(STATUS, status);
+
 
         if (email != null) {
             statement = statement.bind(EMAIL_FIELD, email);
@@ -51,6 +59,12 @@ public class PendingLoanRepositoryCustomImpl implements PendingLoanRepositoryCus
             statement = statement.bindNull(EMAIL_FIELD, String.class);
         }
 
+        //use pagination just in case is needed
+        if (size != -1 && offset != -1) {
+            statement = statement.bind(SIZE, size)
+                    .bind(OFFSET, offset);
+
+        }
 
         return statement
                 .map((row, rowMetadata) ->

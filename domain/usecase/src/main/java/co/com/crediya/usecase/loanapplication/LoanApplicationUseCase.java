@@ -12,7 +12,6 @@ import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
-import co.com.crediya.model.loanautomaticvalidation.LoanAutomaticValidation;
 import co.com.crediya.model.loannotification.Loan;
 import co.com.crediya.model.loannotification.LoanNotification;
 import co.com.crediya.model.loannotification.LoanNotificationRequest;
@@ -26,7 +25,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -45,48 +44,10 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession) {
 
 
-        Loan aprobado1 = Loan.builder().amount(BigDecimal.valueOf(2000000))
-                .rate(BigDecimal.valueOf(15))
-                .term(24)
-                .status("APROBADO")
-                .build();
-
-        Loan aprobado2 = Loan.builder().amount(BigDecimal.valueOf(2000000))
-                .rate(BigDecimal.valueOf(15))
-                .term(24)
-                .status("APROBADO")
-                .build();
-
-        List<Loan> aprobado3 = List.of(aprobado1, aprobado2);
-
-        String payload = """
-                {
-                  "salaryBase": 3000000,
-                  "amount": 5000000,
-                  "rate": 0.02,
-                  "term": 12,
-                  "loans": [
-                    {
-                      "id": "123",
-                      "amount": 2000000,
-                      "rate": 0.015,
-                      "term": 24,
-                      "status": "APROBADO"
-                    },
-                    {
-                      "id": "456",
-                      "amount": 1000000,
-                      "rate": 0.02,
-                      "term": 12,
-                      "status": "APROBADO"
-                    }
-                  ]
-                }
-                """;
-
-
         return loanTypeRepository.findByLoanType(loanApplication.getLoanType())
-                .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(String.format(ExceptionMessages.NOT_ALLOWED_LOAN_TYPE, loanApplication.getLoanType()))))
+                .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(
+                        String.format(ExceptionMessages.NOT_ALLOWED_LOAN_TYPE, loanApplication.getLoanType())
+                )))
                 .flatMap(validType -> userGatewayRepository.findUserByIdDocument(idDocument, token)
                         .flatMap(user -> {
 
@@ -94,20 +55,37 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                                 return Mono.error(new CreationNotAllowedException(ExceptionMessages.NOT_ALLOWED_USER));
                             }
 
-
                             loanApplication.setEmail(user.getEmail());
                             loanApplication.setStatus(1);
 
                             return loanApplicationRepository.createLoanApplication(loanApplication)
-                                    .map(savedLoan -> new LoanNotificationRequest(user.getSalaryBase(), loanApplication.getAmount(), validType.getInterestRate(), loanApplication.getTerm(), aprobado3));
+                                    .flatMap(createdLoan -> {
+                                        // build the sqs request just in case the automaticValidation field is true
+                                        if (validType.isAutomaticValidation()) {
+                                            return loanApplicationRepository.findByStatus(2, user.getEmail(), -1, -1)
+                                                    .map(found -> new Loan(
+                                                            found.getAmount(),
+                                                            found.getInterestRate(),
+                                                            found.getTerm(),
+                                                            found.getStatus()
+                                                    ))
+                                                    .collectList()
+                                                    .map(loans -> new LoanNotificationRequest(
+                                                            user.getSalaryBase(),
+                                                            loanApplication.getAmount(),
+                                                            validType.getInterestRate(),
+                                                            loanApplication.getTerm(),
+                                                            loans
+                                                    ))
+                                                    .flatMap(notificationRequest ->
+                                                            loannotificationRepository.sendForValidation(notificationRequest)
+                                                                    .thenReturn(createdLoan) // return the application created
+                                                    );
+                                        }
+
+                                        return Mono.just(createdLoan);
+                                    });
                         })
-
-                )
-                .flatMap(automaticValidation ->
-                        // send message after update status
-
-                        loannotificationRepository.sendForValidation(automaticValidation)
-                                .thenReturn(loanApplication)
                 );
 
 
