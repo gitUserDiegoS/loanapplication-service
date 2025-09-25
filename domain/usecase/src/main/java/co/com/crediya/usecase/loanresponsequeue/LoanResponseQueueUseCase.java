@@ -22,7 +22,7 @@ public class LoanResponseQueueUseCase implements IloanResponseQueueUseCase {
     public Mono<Void> processLoanResponse(LoanResponseProcessor processUpdate) {
 
 
-        int status = 1;
+        int status = 6;//status for manual review
         if (processUpdate.getDecition().equalsIgnoreCase("REJECTED")) {
             status = 3;
         } else if (processUpdate.getDecition().equalsIgnoreCase("APPROVED")) {

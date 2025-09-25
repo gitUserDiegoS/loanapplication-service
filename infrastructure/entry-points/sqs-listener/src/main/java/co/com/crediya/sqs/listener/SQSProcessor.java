@@ -1,7 +1,6 @@
 package co.com.crediya.sqs.listener;
 
 import co.com.crediya.model.loannotification.LoanNotification;
-import co.com.crediya.model.loannotification.PaymentPlan;
 import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.model.loanresponseprocessor.LoanResponseProcessor;
 import co.com.crediya.model.utilenum.StatusEnum;
@@ -30,8 +29,6 @@ public class SQSProcessor implements Function<Message, Mono<Void>> {
     @Override
     public Mono<Void> apply(Message message) {
 
-        System.out.println(message.body());
-
         LoanResponseProcessor processUpdate = new LoanResponseProcessor();
 
         try {
@@ -47,7 +44,7 @@ public class SQSProcessor implements Function<Message, Mono<Void>> {
                                 LoanNotification.builder()
                                         .idApplication(processUpdate.getIdApplication())
                                         .status(StatusEnum.translatefromText(processUpdate.getDecition()))
-                                        .paymentPlan(processUpdate.getDecition().equalsIgnoreCase("APPROVED")? processUpdate.getPaymentPlan():null)
+                                        .paymentPlan(processUpdate.getDecition().equalsIgnoreCase("APPROVED") ? processUpdate.getPaymentPlan() : null)
                                         .build()
                         )
                 )

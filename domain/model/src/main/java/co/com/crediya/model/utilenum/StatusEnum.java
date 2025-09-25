@@ -9,6 +9,7 @@ public enum StatusEnum {
     REJECTED(3, "Rechazada", "Rejected");
 
 
+    public static final String INVALID_CODE_STATUS = "invalid code status ";
     private final Integer code;
     private final String description;
     private final String translation;
@@ -25,7 +26,7 @@ public enum StatusEnum {
                 .filter(status -> status.code.equals(code))
                 .map(s -> s.description)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("invalid code status " + code));
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_CODE_STATUS + code));
     }
 
     public static String translatefromCode(Integer code) {
@@ -33,7 +34,7 @@ public enum StatusEnum {
                 .filter(status -> status.code.equals(code))
                 .map(s -> s.translation)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("invalid code status " + code));
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_CODE_STATUS + code));
     }
 
 
@@ -42,7 +43,7 @@ public enum StatusEnum {
                 .filter(status -> status.translation.equalsIgnoreCase(code))
                 .map(s -> s.description)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("invalid code status " + code));
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_CODE_STATUS + code));
     }
 
 }

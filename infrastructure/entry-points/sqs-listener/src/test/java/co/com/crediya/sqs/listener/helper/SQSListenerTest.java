@@ -1,13 +1,20 @@
 package co.com.crediya.sqs.listener.helper;
 
+import co.com.crediya.model.loanautomaticvalidation.LoanAutomaticValidation;
+import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.LoanNotificationRequest;
+import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.sqs.listener.SQSProcessor;
 import co.com.crediya.sqs.listener.config.SQSProperties;
+import co.com.crediya.usecase.loanresponsequeue.LoanResponseQueueUseCase;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
@@ -40,7 +47,8 @@ class SQSListenerTest {
                 20,
                 30,
                 10,
-                1
+                1,
+                null
         );
 
         var message = Message.builder().body("message").build();
@@ -58,7 +66,22 @@ class SQSListenerTest {
         var sqsListener = SQSListener.builder()
                 .client(asyncClient)
                 .properties(sqsProperties)
-                .processor(new SQSProcessor())
+                .processor(new SQSProcessor(new ObjectMapper(), new LoanResponseQueueUseCase(null,null), new LoanNotificationRepository() {
+                    @Override
+                    public Mono<String> send(LoanNotification message) {
+                        return null;
+                    }
+
+                    @Override
+                    public Mono<String> sendForValidation(LoanNotificationRequest payload) {
+                        return null;
+                    }
+
+                    @Override
+                    public Flux<LoanAutomaticValidation> receiveResponses() {
+                        return null;
+                    }
+                }))
                 .operation("operation")
                 .build();
 

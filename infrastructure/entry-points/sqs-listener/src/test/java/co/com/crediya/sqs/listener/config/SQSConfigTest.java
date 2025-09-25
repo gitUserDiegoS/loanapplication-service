@@ -6,7 +6,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
-import software.amazon.awssdk.metrics.LoggingMetricPublisher;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,26 +37,7 @@ class SQSConfigTest {
         assertThat(sqsConfig.sqsListener(sqsAsyncClient, sqsProperties, message -> Mono.empty())).isNotNull();
     }
 
-    /*
-    @Test
-    void configSqsIsNotNull() {
-        var loggingMetricPublisher = LoggingMetricPublisher.create();
-        assertThat(sqsConfig.configSqs(sqsProperties, loggingMetricPublisher)).isNotNull();
-    }
 
-
-     */
-
-    /*
-    @Test
-    void configSqsWhenEndpointIsNotNull() {
-        var loggingMetricPublisher = LoggingMetricPublisher.create();
-        when(sqsProperties.endpoint()).thenReturn("http://localhost:4566");
-        assertThat(sqsConfig.configSqs(sqsProperties, loggingMetricPublisher)).isNotNull();
-    }
-
-
-     */
     @Test
     void resolveEndpointIsNull() {
         assertThat(sqsConfig.resolveEndpoint(sqsProperties)).isNull();

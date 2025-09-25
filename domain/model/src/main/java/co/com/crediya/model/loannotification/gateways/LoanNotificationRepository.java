@@ -7,7 +7,6 @@ import co.com.crediya.model.loannotification.LoanNotificationRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 
 public interface LoanNotificationRepository {
 
