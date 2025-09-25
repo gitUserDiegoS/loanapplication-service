@@ -1,4 +1,4 @@
-package co.com.crediya.r2dbc;
+package co.com.crediya.r2dbc.dto;
 
 import java.math.BigDecimal;
 

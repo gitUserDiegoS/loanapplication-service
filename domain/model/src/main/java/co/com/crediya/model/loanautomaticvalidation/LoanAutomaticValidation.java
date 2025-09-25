@@ -1,4 +1,4 @@
-package co.com.crediya.model.loannotification;
+package co.com.crediya.model.loanautomaticvalidation;
 
 import lombok.Builder;
 import lombok.AllArgsConstructor;
@@ -6,19 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class LoanNotification {
+public class LoanAutomaticValidation {
 
-    private Long idApplication;
-
-    private String status;
-
-    private List<PaymentPlan> paymentPlan;
+    private String id;
+    private String body;
 
 }

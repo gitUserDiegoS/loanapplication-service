@@ -12,7 +12,9 @@ import co.com.crediya.model.loanapplication.gateways.LoanTypeRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
 import co.com.crediya.model.loanapplication.gateways.UserGatewayRepository;
 import co.com.crediya.model.loanapplication.exceptions.NotAllowedLoanTypeException;
+import co.com.crediya.model.loannotification.Loan;
 import co.com.crediya.model.loannotification.LoanNotification;
+import co.com.crediya.model.loannotification.LoanNotificationRequest;
 import co.com.crediya.model.loannotification.gateways.LoanNotificationRepository;
 import co.com.crediya.model.loanoperation.LoanOperation;
 import co.com.crediya.model.usersession.UserSession;
@@ -39,8 +41,11 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
     @Override
     public Mono<LoanApplication> saveLoanApplication(LoanApplication loanApplication, String idDocument, String token, UserSession userSession) {
 
+
         return loanTypeRepository.findByLoanType(loanApplication.getLoanType())
-                .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(String.format(ExceptionMessages.NOT_ALLOWED_LOAN_TYPE, loanApplication.getLoanType()))))
+                .switchIfEmpty(Mono.error(new NotAllowedLoanTypeException(
+                        String.format(ExceptionMessages.NOT_ALLOWED_LOAN_TYPE, loanApplication.getLoanType())
+                )))
                 .flatMap(validType -> userGatewayRepository.findUserByIdDocument(idDocument, token)
                         .flatMap(user -> {
 
@@ -51,9 +56,35 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                             loanApplication.setEmail(user.getEmail());
                             loanApplication.setStatus(1);
 
-                            return loanApplicationRepository.createLoanApplication(loanApplication);
-                        })
+                            return loanApplicationRepository.createLoanApplication(loanApplication)
+                                    .flatMap(createdLoan -> {
+                                        // build the sqs request just in case the automaticValidation field is true
+                                        if (validType.isAutomaticValidation()) {
+                                            return loanApplicationRepository.findByStatus(2, user.getEmail(), -1, -1)
+                                                    .map(found -> new Loan(
+                                                            found.getAmount(),
+                                                            found.getInterestRate(),
+                                                            found.getTerm(),
+                                                            found.getStatus()
+                                                    ))
+                                                    .collectList()
+                                                    .map(loans -> new LoanNotificationRequest(
+                                                            createdLoan.getIdApplication(),
+                                                            user.getSalaryBase(),
+                                                            loanApplication.getAmount(),
+                                                            validType.getInterestRate(),
+                                                            loanApplication.getTerm(),
+                                                            loans
+                                                    ))
+                                                    .flatMap(notificationRequest ->
+                                                            loannotificationRepository.sendForValidation(notificationRequest)
+                                                                    .thenReturn(createdLoan) // return the application created
+                                                    );
+                                        }
 
+                                        return Mono.just(createdLoan);
+                                    });
+                        })
                 );
 
 
@@ -71,7 +102,8 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
      * @return pageable result
      */
     @Override
-    public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page, int size, int offset, String token) {
+    public Mono<PageResponse<PendingLoanApplication>> getLoanApplications(int status, String email, int page,
+                                                                          int size, int offset, String token) {
 
         Mono<List<PendingLoanApplication>> loansMono =
                 loanApplicationRepository.findByStatus(status, email, size, offset)

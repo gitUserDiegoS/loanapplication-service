@@ -4,6 +4,7 @@ package co.com.crediya.r2dbc;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.PendingLoanApplication;
+import co.com.crediya.r2dbc.customrepository.PendingLoanReactiveRepository;
 import co.com.crediya.r2dbc.entity.LoanApplicationEntity;
 import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
@@ -76,15 +77,19 @@ public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     public Mono<LoanApplication> updateStatusLoanApplication(LoanApplication loanApplication) {
-        log.trace("Updating loan application with status: {}", loanApplication.getStatus());
+        log.info("Updating loan application with status: {}", loanApplication.getStatus());
         return super.findById(loanApplication.getIdApplication())
+                .switchIfEmpty(Mono.error(new InternalError("Exception launched")))
                 .flatMap(loanFound -> {
+                    log.info("Updating loan application with status: {}", loanFound);
+
                     loanFound.setStatus(loanApplication.getStatus());
 
                     return super.save(loanFound)
-                            .as(operator::transactional)
                             .doOnNext(savedLoanApplication -> log.trace("Loan application updated successfully with id: {}", savedLoanApplication.getIdApplication()))
-                            .doOnError(error -> log.error("Error when try to update the application's status, failed with message: {}", error.getMessage()));
+                            .doOnError(error -> log.error("Error when try to update the application's status, failed with message: {}", error.getMessage()))
+                            .as(operator::transactional)
+                            .doOnTerminate(() -> log.info("Finished processing loan response for id: {}", loanApplication.getIdApplication()));//wait until petition finish
                 });
 
 

@@ -1,5 +1,6 @@
-package co.com.crediya.model.loannotification;
+package co.com.crediya.model.loanresponseprocessor;
 
+import co.com.crediya.model.loannotification.PaymentPlan;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,12 +14,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class LoanNotification {
+public class LoanResponseProcessor {
 
     private Long idApplication;
 
-    private String status;
+    private String decition;
 
     private List<PaymentPlan> paymentPlan;
+
 
 }
