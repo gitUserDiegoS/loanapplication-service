@@ -12,6 +12,8 @@ import java.util.List;
 @Builder(toBuilder = true)
 public class LoanNotificationRequest {
 
+    private Long idApplication;
+
     private BigDecimal salaryBase;
 
     private BigDecimal amount;
