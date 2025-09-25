@@ -71,6 +71,7 @@ public class LoanApplicationUseCase implements IloanAppicationUseCase {
                                                     ))
                                                     .collectList()
                                                     .map(loans -> new LoanNotificationRequest(
+                                                            createdLoan.getIdApplication(),
                                                             user.getSalaryBase(),
                                                             loanApplication.getAmount(),
                                                             validType.getInterestRate(),

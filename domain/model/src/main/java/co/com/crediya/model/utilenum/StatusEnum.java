@@ -37,4 +37,12 @@ public enum StatusEnum {
     }
 
 
+    public static String translatefromText(String code) {
+        return Arrays.stream(values())
+                .filter(status -> status.translation.equalsIgnoreCase(code))
+                .map(s -> s.description)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("invalid code status " + code));
+    }
+
 }
